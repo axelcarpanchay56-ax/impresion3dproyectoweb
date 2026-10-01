@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="impresion3d.Core/impresion3d.Core.csproj" />
+  <Project Path="impresion3d.Infrastructure/impresion3d.Infrastructure.csproj" />
+  <Project Path="impresion3d.Shared/impresion3d.Shared.csproj" />
+  <Project Path="impresion3d.Test/impresion3d.Test.csproj" />
+  <Project Path="WebApplication1/impresion3d.Api.csproj" />
+</Solution>
