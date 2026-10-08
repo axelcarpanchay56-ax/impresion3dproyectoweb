@@ -1,0 +1,21 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql-impresion3d
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_impresiones3d
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./impresion3dbd.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - mysql_data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --performance_schema=OFF
+      - --innodb-buffer-pool-size=64M
+
+volumes:
+  mysql_data:

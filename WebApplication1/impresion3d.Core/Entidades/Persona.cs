@@ -4,7 +4,7 @@ using System.Text;
 
 namespace impresion3d.Core.Entidades
 {
-    internal class Persona
+    public class Persona
     {
         public int IdPersona { get; set; }
 
