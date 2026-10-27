@@ -4,7 +4,7 @@ using System.Text;
 
 namespace impresion3d.Core.Entidades
 {
-    internal class Roles
+    public class Roles
     {
         public int IdRol { get; set; }
 

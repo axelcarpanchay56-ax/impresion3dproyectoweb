@@ -4,7 +4,7 @@ using System.Text;
 
 namespace impresion3d.Core.Entidades
 {
-    internal class Productos
+    public  class Productos
     {
         public int IdProducto { get; set; }
 

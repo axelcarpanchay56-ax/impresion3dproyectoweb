@@ -4,7 +4,7 @@ using System.Text;
 
 namespace impresion3d.Core.Entidades
 {
-    internal class Materiales
+    public  class Materiales
     {
         public int IdMaterial { get; set; }
 
@@ -20,4 +20,4 @@ namespace impresion3d.Core.Entidades
 
         public bool activo { get; set; } 
     }
-}
+} 
