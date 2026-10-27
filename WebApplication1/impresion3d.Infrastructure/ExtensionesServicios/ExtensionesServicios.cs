@@ -45,7 +45,10 @@ namespace impresion3d.Infrastructure.ExtensionesServicios
             services.AddScoped<ServicioProductoMaterial>();
 
             services.AddScoped<IMovimientoMaterialRepositorio, MovimientoMaterialRepositorio>();
-            services.AddScoped<ServicioMovimientoMaterial>(); 
+            services.AddScoped<ServicioMovimientoMaterial>();
+
+            services.AddScoped<IModelo3DRepositorio, Modelo3DRepositorio>();
+            services.AddScoped<ServicioModelo3D>(); 
 
             return services;
         }
