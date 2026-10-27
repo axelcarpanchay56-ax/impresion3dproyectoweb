@@ -79,7 +79,7 @@ namespace impresion3d.Test
 
             var movimiento = new MovimientoMaterial
             {
-                IdMovimientoMaterial = 3,
+                IdMovimientoMaterial = 5,
                 id_material = 1,
                 tipo_movimiento = "Salida",
                 cantidad = 2.00m,
@@ -100,11 +100,22 @@ namespace impresion3d.Test
 
             var conexion = new MyConexion(connectionString);
 
-            var repositorio =
-                new MovimientoMaterialRepositorio(conexion);
+            var repositorio = new MovimientoMaterialRepositorio(conexion);
 
-            bool resultado =
-                await repositorio.EliminarAsync(3);
+            var movimiento = new MovimientoMaterial
+            {
+                id_material = 1,
+                tipo_movimiento = "Salida",
+                cantidad = 1.25m,
+                fecha_hora = new DateTime(2026, 10, 22),
+                observacion = "Movimiento temporal para eliminar"
+            };
+
+            int idGenerado = await repositorio.CrearAsync(movimiento);
+
+            Assert.True(idGenerado > 0);
+
+            bool resultado = await repositorio.EliminarAsync(idGenerado);
 
             Assert.True(resultado);
         } 

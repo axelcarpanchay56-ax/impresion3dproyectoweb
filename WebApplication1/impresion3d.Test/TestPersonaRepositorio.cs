@@ -62,13 +62,16 @@ namespace impresion3d.Test
 
             var repositorio = new PersonaRepositorio(conexion);
 
+            string dniAleatorio =
+                Random.Shared.Next(10000000, 99999999).ToString();
+
             var nuevaPersona = new Persona
             {
-                Dni = "40123456",
+                Dni = dniAleatorio,
                 Nombre = "Pedro",
                 Apellido = "Ramirez",
                 Telefono = "3815554444",
-                Email = "pedro@gmail.com",
+                Email = "pedro." + Guid.NewGuid().ToString("N") + "@gmail.com",
                 Direccion = "Rivadavia 123",
                 Activo = true,
                 FechaAlta = DateTime.Now
@@ -77,7 +80,7 @@ namespace impresion3d.Test
             int resultado = await repositorio.CrearAsync(nuevaPersona);
 
             Assert.True(resultado > 0);
-        }
+        } 
         [Fact]
         public async Task ActualizarAsync_DeberiaActualizarPersona()
         {
