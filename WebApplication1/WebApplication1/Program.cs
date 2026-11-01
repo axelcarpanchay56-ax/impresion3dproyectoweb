@@ -11,15 +11,11 @@ namespace WebApplication1
             // Servicios
             builder.Services.AddControllers();
             builder.Services.AddInfrastructure(builder.Configuration);
-            builder.Services.AddOpenApi();
+            
 
             var app = builder.Build();
 
-            // Configuración HTTP
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-            }
+            
 
             app.UseHttpsRedirection();
 

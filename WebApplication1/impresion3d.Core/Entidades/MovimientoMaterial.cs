@@ -4,7 +4,7 @@ using System.Text;
 
 namespace impresion3d.Core.Entidades
 {
-    internal class MovimientoMaterial
+    public class MovimientoMaterial
     {
         public int IdMovimientoMaterial { get; set; }
 
@@ -18,4 +18,5 @@ namespace impresion3d.Core.Entidades
 
         public string observacion { get; set; } 
     }
-}
+} 
+

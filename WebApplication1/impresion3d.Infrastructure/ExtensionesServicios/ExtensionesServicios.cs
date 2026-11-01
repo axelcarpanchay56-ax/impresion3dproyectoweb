@@ -23,6 +23,32 @@ namespace impresion3d.Infrastructure.ExtensionesServicios
                 new MyConexion(connectionString)
             );
 
+            // Inyección de dependencias Módulo 1: Personas / Clientes / Usuarios / Roles
+            services.AddScoped<IPersonaRepositorio, PersonaRepositorio>();
+            services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
+            services.AddScoped<IRolRepositorio, RolRepositorio>();
+            services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
+            services.AddScoped<IUsuarioRolRepositorio, UsuarioRolRepositorio>();
+
+            services.AddScoped<ServicioPersona>();
+            services.AddScoped<ServicioCliente>();
+            services.AddScoped<ServicioRol>();
+            services.AddScoped<ServicioUsuario>();
+            services.AddScoped<ServicioUsuarioRol>();
+
+            // Inyección de dependencias Módulo 2: Catálogo / Inventario
+            services.AddScoped<IMaterialRepositorio, MaterialRepositorio>();
+            services.AddScoped<ServicioMaterial>();
+
+            services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
+            services.AddScoped<ServicioProducto>();
+
+            services.AddScoped<IProductoMaterialRepositorio, ProductoMaterialRepositorio>();
+            services.AddScoped<ServicioProductoMaterial>();
+
+            services.AddScoped<IMovimientoMaterialRepositorio, MovimientoMaterialRepositorio>();
+            services.AddScoped<ServicioMovimientoMaterial>();
+
             // Inyección de dependencias Módulo 3: Impresión 3D
             services.AddScoped<IModelo3DRepositorio, Modelo3DRepositorio>();
             services.AddScoped<ServicioModelo3D>();
