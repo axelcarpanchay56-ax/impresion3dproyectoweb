@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace impresion3d.Core.Entidades
 {
-    internal class EstadoPedido
+    public class EstadoPedido
     {
-        public int IdEstadoPedido { get; set; }
-
-        public string nombre { get; set; } 
-
-
+        public int id_estado_pedido { get; set; }
+        public string nombre { get; set; } = string.Empty;
     }
 }

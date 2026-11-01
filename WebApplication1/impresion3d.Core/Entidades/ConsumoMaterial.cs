@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System;
 
 namespace impresion3d.Core.Entidades
 {
-    internal class ConsumoMaterial
+    public class ConsumoMaterial
     {
-        public int IdConsumoMaterial { get; set; }
-
-        public int id_trabajo_impresion { get; set; }
-
+        public int id_consumo_material { get; set; }
+        public int id_trabajo { get; set; }
         public int id_material { get; set; }
-
-        public decimal cantidad_real { get; set; }
-
+        public decimal cantidad { get; set; }
         public DateTime fecha_hora { get; set; }
     }
 }

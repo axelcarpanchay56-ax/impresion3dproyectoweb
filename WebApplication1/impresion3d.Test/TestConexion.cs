@@ -14,7 +14,7 @@ namespace impresion3d.Test
 
             MyConexion conexion = new MyConexion(connectionString);
 
-            using var conn = await conexion.obtenerConexionAsync();
+            using var conn = await conexion.ObtenerConexionAsync();
 
             Assert.NotNull(conn);
             Assert.Equal(ConnectionState.Open, conn.State);
