@@ -37,9 +37,6 @@ namespace impresion3d.Infrastructure.ExtensionesServicios
             services.AddScoped<ServicioUsuarioRol>();
 
             // Inyección de dependencias Módulo 2: Catálogo / Inventario
-            services.AddScoped<IMaterialRepositorio, MaterialRepositorio>();
-            services.AddScoped<ServicioMaterial>();
-
             services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
             services.AddScoped<ServicioProducto>();
 

@@ -9,9 +9,9 @@ namespace impresion3d.Infrastructure.Repositorios
 {
     public class MovimientoMaterialRepositorio : IMovimientoMaterialRepositorio
     {
-        private readonly Imiconexion _conexion;
+        private readonly IMiConexion _conexion;
 
-        public MovimientoMaterialRepositorio(Imiconexion conexion)
+        public MovimientoMaterialRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
         }
@@ -21,7 +21,7 @@ namespace impresion3d.Infrastructure.Repositorios
             var lista = new List<MovimientoMaterial>();
 
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_movimiento_material_obtener_todos",
@@ -66,7 +66,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<MovimientoMaterial?> ObtenerPorIdAsync(int id)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_movimiento_material_obtener_por_id",
@@ -114,7 +114,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<int> CrearAsync(MovimientoMaterial movimientoMaterial)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_movimiento_material_crear",
@@ -156,7 +156,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<bool> ActualizarAsync(MovimientoMaterial movimientoMaterial)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_movimiento_material_actualizar",
@@ -204,7 +204,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<bool> EliminarAsync(int id)
         {
             using var conexion =
-       (MySqlConnection)await _conexion.obtenerConexionAsync();
+       (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_movimiento_material_eliminar",
