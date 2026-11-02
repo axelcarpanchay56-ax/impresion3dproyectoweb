@@ -1,43 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using MySqlConnector;
-using System.Data;
+﻿using System.Data;
 using impresion3d.Core.Interfaces;
-using System.Threading.Tasks;
+using MySqlConnector;
 
 namespace impresion3d.Infrastructure.Contexto
 {
-    public class MyConexion : Imiconexion
+    public class MyConexion : IMiConexion
     {
         private readonly string _cadenaDeConexion;
 
-        public MyConexion(string _cadena)
+        public MyConexion(string cadena)
         {
-            _cadenaDeConexion = _cadena;
+            _cadenaDeConexion = cadena;
         }
 
-        public MySqlConnection obtenerConexion()
+        public IDbConnection ObtenerConexion()
         {
-            MySqlConnection conn = new MySqlConnection(_cadenaDeConexion);
-            conn.Open();
-            return conn;
+            return new MySqlConnection(_cadenaDeConexion);
         }
 
-        public async Task<MySqlConnection> obtenerConexionAsync()
+        public async Task<IDbConnection> ObtenerConexionAsync()
         {
-            MySqlConnection conn = new MySqlConnection(_cadenaDeConexion);
+            var conn = new MySqlConnection(_cadenaDeConexion);
             await conn.OpenAsync();
-            return conn;
-        }
-        IDbConnection Imiconexion.obtenerConexion()
-        {
-            return obtenerConexion();
-        }
-
-        async Task<IDbConnection> Imiconexion.obtenerConexionAsync()
-        {
-            var conn = await obtenerConexionAsync();
             return conn;
         }
     }

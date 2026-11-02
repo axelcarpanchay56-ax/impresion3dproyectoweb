@@ -7,9 +7,9 @@ namespace impresion3d.Infrastructure.Repositorios
 {
     public class ClienteRepositorio : IClienteRepositorio
     {
-        private readonly Imiconexion _conexion;
+        private readonly IMiConexion _conexion;
 
-        public ClienteRepositorio(Imiconexion conexion)
+        public ClienteRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
         }
@@ -19,7 +19,7 @@ namespace impresion3d.Infrastructure.Repositorios
             var clientes = new List<Clientes>();
 
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_clientes_obtener_todos",
@@ -47,7 +47,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<int> CrearAsync(Clientes cliente)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_clientes_crear",

@@ -7,9 +7,9 @@ namespace impresion3d.Infrastructure.Repositorios
 {
     public class RolRepositorio : IRolRepositorio
     {
-        private readonly Imiconexion _conexion;
+        private readonly IMiConexion _conexion;
 
-        public RolRepositorio(Imiconexion conexion)
+        public RolRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
         }
@@ -19,7 +19,7 @@ namespace impresion3d.Infrastructure.Repositorios
             var roles = new List<Roles>();
 
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_roles_obtener_todos",

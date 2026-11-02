@@ -7,9 +7,9 @@ namespace impresion3d.Infrastructure.Repositorios
 {
     public class UsuarioRolRepositorio : IUsuarioRolRepositorio
     {
-        private readonly Imiconexion _conexion;
+        private readonly IMiConexion _conexion;
 
-        public UsuarioRolRepositorio(Imiconexion conexion)
+        public UsuarioRolRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
         }
@@ -17,7 +17,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<int> AsignarAsync(Usuario_Rol usuarioRol)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_usuario_rol_asignar",
@@ -47,7 +47,7 @@ namespace impresion3d.Infrastructure.Repositorios
             var rolesUsuario = new List<Usuario_Rol>();
 
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_usuario_rol_obtener_por_usuario",

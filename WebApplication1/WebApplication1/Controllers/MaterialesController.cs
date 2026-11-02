@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Servicios;
@@ -9,107 +9,52 @@ namespace impresion3d.Api.Controllers
     [Route("api/[controller]")]
     public class MaterialesController : ControllerBase
     {
-        private readonly ServicioMaterial _servicio;
+        private readonly ServicioMateriales _servicio;
 
-        public MaterialesController(ServicioMaterial servicio)
+        public MaterialesController(ServicioMateriales servicio)
         {
             _servicio = servicio;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> Get()
         {
-            var materiales =
-                await _servicio.ObtenerTodosAsync();
-
-            var materialesDto = materiales.Select(material => new MaterialDto
+            var materiales = await _servicio.ObtenerTodosAsync();
+            var dtos = materiales.Select(m => new MaterialesDto
             {
-                IdMaterial = material.IdMaterial,
-                nombre = material.nombre,
-                tipo = material.tipo,
-                unidad_medida = material.unidad_medida,
-                color = material.color,
-                diametro = material.diametro,
-                activo = material.activo
-            }).ToList();
-
-            return Ok(materialesDto);
+                id_material = m.id_material,
+                nombre = m.nombre,
+                tipo = m.tipo,
+                unidad_medida = m.unidad_medida,
+                color = m.color,
+                diametro = m.diametro,
+                activo = m.activo
+            });
+            return Ok(dtos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var material =
-                await _servicio.ObtenerPorIdAsync(id);
-
-            if (material == null)
+            var m = await _servicio.ObtenerPorIdAsync(id);
+            var dto = new MaterialesDto
             {
-                return NotFound(
-                    "Material no encontrado."
-                );
-            }
-
-            var materialDto = new MaterialDto
-            {
-                IdMaterial = material.IdMaterial,
-                nombre = material.nombre,
-                tipo = material.tipo,
-                unidad_medida = material.unidad_medida,
-                color = material.color,
-                diametro = material.diametro,
-                activo = material.activo
+                id_material = m.id_material,
+                nombre = m.nombre,
+                tipo = m.tipo,
+                unidad_medida = m.unidad_medida,
+                color = m.color,
+                diametro = m.diametro,
+                activo = m.activo
             };
-
-            return Ok(materialDto);
+            return Ok(dto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Crear(
-            CrearMaterialDto dto)
+        public async Task<IActionResult> Post([FromBody] MaterialesCrearDto dto)
         {
-            var material = new Materiales
+            var entidad = new Materiales
             {
-                nombre = dto.nombre,
-                tipo = dto.tipo,
-                unidad_medida = dto.unidad_medida,
-                color = dto.color,
-                diametro = dto.diametro,
-                activo = true
-            };
-
-            int resultado =
-                await _servicio.CrearAsync(material);
-
-            if (resultado <= 0)
-            {
-                return BadRequest(
-                    "No se pudo crear el material."
-                );
-            }
-
-            return Ok(
-                "Material creado correctamente."
-            );
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Actualizar(
-            int id,
-            ActualizarMaterialDto dto)
-        {
-            var materialExistente =
-                await _servicio.ObtenerPorIdAsync(id);
-
-            if (materialExistente == null)
-            {
-                return NotFound(
-                    "Material no encontrado."
-                );
-            }
-
-            var material = new Materiales
-            {
-                IdMaterial = id,
                 nombre = dto.nombre,
                 tipo = dto.tipo,
                 unidad_medida = dto.unidad_medida,
@@ -118,42 +63,33 @@ namespace impresion3d.Api.Controllers
                 activo = dto.activo
             };
 
-            bool resultado =
-                await _servicio.ActualizarAsync(material);
-
-            if (!resultado)
-            {
-                return BadRequest(
-                    "No se pudo actualizar el material."
-                );
-            }
-
-            return Ok(
-                "Material actualizado correctamente."
-            );
+            var id = await _servicio.CrearAsync(entidad);
+            return CreatedAtAction(nameof(GetById), new { id }, new { id });
         }
 
-        [HttpPatch("{id}/estado")]
-        public async Task<IActionResult> CambiarEstado(
-            int id,
-            bool activo)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Put(int id, [FromBody] MaterialesActualizarDto dto)
         {
-            bool resultado =
-                await _servicio.CambiarEstadoAsync(
-                    id,
-                    activo
-                );
-
-            if (!resultado)
+            var entidad = new Materiales
             {
-                return BadRequest(
-                    "No se pudo cambiar el estado del material."
-                );
-            }
+                id_material = id,
+                nombre = dto.nombre,
+                tipo = dto.tipo,
+                unidad_medida = dto.unidad_medida,
+                color = dto.color,
+                diametro = dto.diametro,
+                activo = dto.activo
+            };
 
-            return Ok(
-                "Estado del material actualizado correctamente."
-            );
+            await _servicio.ActualizarAsync(entidad);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _servicio.EliminarAsync(id);
+            return NoContent();
         }
     }
-} 
+}

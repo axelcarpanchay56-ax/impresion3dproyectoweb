@@ -1,15 +1,16 @@
-﻿using System.Data;
-using MySqlConnector;
+using System.Data;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Interfaces;
+using impresion3d.Infrastructure.Contexto;
+using MySqlConnector;
 
 namespace impresion3d.Infrastructure.Repositorios
 {
     public class Modelo3DRepositorio : IModelo3DRepositorio
     {
-        private readonly Imiconexion _conexion;
+        private readonly IMiConexion _conexion;
 
-        public Modelo3DRepositorio(Imiconexion conexion)
+        public Modelo3DRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
         }
@@ -17,219 +18,148 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<List<Modelo3D>> ObtenerTodosAsync()
         {
             var lista = new List<Modelo3D>();
-
-            using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
-
-            using var comando = new MySqlCommand(
-                "sp_modelo3d_obtener_todos",
-                conexion
-            );
-
-            comando.CommandType = CommandType.StoredProcedure;
-
-            using var reader = await comando.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
+            try
             {
-                var modelo = new Modelo3D
+                using var conn = await _conexion.ObtenerConexionAsync();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "sp_modelo3d_obtener_todos";
+
+                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
                 {
-                    IdModelo3d =
-                        Convert.ToInt32(reader["id_modelo3d"]),
-
-                    nombre =
-                        reader["nombre"].ToString(),
-
-                    archivo =
-                        reader["archivo"] == DBNull.Value
-                            ? null
-                            : reader["archivo"].ToString(),
-
-                    formato =
-                        reader["formato"] == DBNull.Value
-                            ? null
-                            : reader["formato"].ToString(),
-
-                    descripcion =
-                        reader["descripcion"] == DBNull.Value
-                            ? null
-                            : reader["descripcion"].ToString(),
-
-                    fecha_creacion =
-                        Convert.ToDateTime(reader["fecha_creacion"])
-                };
-
-                lista.Add(modelo);
+                    lista.Add(new Modelo3D
+                    {
+                        id_modelo3d = reader.GetInt32("id_modelo3d"),
+                        nombre = reader.IsDBNull(reader.GetOrdinal("nombre")) ? string.Empty : reader.GetString("nombre"),
+                        archivo = reader.IsDBNull(reader.GetOrdinal("archivo")) ? string.Empty : reader.GetString("archivo"),
+                        formato = reader.IsDBNull(reader.GetOrdinal("formato")) ? string.Empty : reader.GetString("formato"),
+                        descripcion = reader.IsDBNull(reader.GetOrdinal("descripcion")) ? string.Empty : reader.GetString("descripcion"),
+                        fecha_creacion = reader.GetDateTime("fecha_creacion")
+                    });
+                }
             }
-
-            return lista; 
+            catch (MySqlException ex)
+            {
+                ArchivoLog.RegistrarErrores(ex);
+                throw;
+            }
+            return lista;
         }
 
         public async Task<Modelo3D?> ObtenerPorIdAsync(int id)
         {
-            using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
-
-            using var comando = new MySqlCommand(
-                "sp_modelo3d_obtener_por_id",
-                conexion
-            );
-
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_id_modelo3d",
-                id
-            );
-
-            using var reader = await comando.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
+            try
             {
-                return new Modelo3D
+                using var conn = await _conexion.ObtenerConexionAsync();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "sp_modelo3d_obtener_por_id";
+
+                var paramId = cmd.CreateParameter();
+                paramId.ParameterName = "p_id";
+                paramId.Value = id;
+                cmd.Parameters.Add(paramId);
+
+                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
                 {
-                    IdModelo3d =
-                        Convert.ToInt32(reader["id_modelo3d"]),
-
-                    nombre =
-                        reader["nombre"].ToString(),
-
-                    archivo =
-                        reader["archivo"] == DBNull.Value
-                            ? null
-                            : reader["archivo"].ToString(),
-
-                    formato =
-                        reader["formato"] == DBNull.Value
-                            ? null
-                            : reader["formato"].ToString(),
-
-                    descripcion =
-                        reader["descripcion"] == DBNull.Value
-                            ? null
-                            : reader["descripcion"].ToString(),
-
-                    fecha_creacion =
-                        Convert.ToDateTime(reader["fecha_creacion"])
-                };
+                    return new Modelo3D
+                    {
+                        id_modelo3d = reader.GetInt32("id_modelo3d"),
+                        nombre = reader.IsDBNull(reader.GetOrdinal("nombre")) ? string.Empty : reader.GetString("nombre"),
+                        archivo = reader.IsDBNull(reader.GetOrdinal("archivo")) ? string.Empty : reader.GetString("archivo"),
+                        formato = reader.IsDBNull(reader.GetOrdinal("formato")) ? string.Empty : reader.GetString("formato"),
+                        descripcion = reader.IsDBNull(reader.GetOrdinal("descripcion")) ? string.Empty : reader.GetString("descripcion"),
+                        fecha_creacion = reader.GetDateTime("fecha_creacion")
+                    };
+                }
             }
-
-            return null; 
+            catch (MySqlException ex)
+            {
+                ArchivoLog.RegistrarErrores(ex);
+                throw;
+            }
+            return null;
         }
 
-        public async Task<int> CrearAsync(Modelo3D modelo3D)
+        public async Task<int> CrearAsync(Modelo3D entidad)
         {
-            using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+            try
+            {
+                using var conn = await _conexion.ObtenerConexionAsync();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "sp_modelo3d_crear";
 
-            using var comando = new MySqlCommand(
-                "sp_modelo3d_crear",
-                conexion
-            );
+                AddParam(cmd, "p_nombre", entidad.nombre);
+                AddParam(cmd, "p_archivo", entidad.archivo);
+                AddParam(cmd, "p_formato", entidad.formato);
+                AddParam(cmd, "p_descripcion", entidad.descripcion);
+                AddParam(cmd, "p_fecha_creacion", entidad.fecha_creacion == default ? DateTime.Now : entidad.fecha_creacion);
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_nombre",
-                modelo3D.nombre
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_archivo",
-                modelo3D.archivo
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_formato",
-                modelo3D.formato
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_descripcion",
-                modelo3D.descripcion
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_fecha_creacion",
-                modelo3D.fecha_creacion
-            );
-
-            object? resultado =
-                await comando.ExecuteScalarAsync();
-
-            return Convert.ToInt32(resultado);
- 
+                var res = await (cmd as MySqlCommand)!.ExecuteScalarAsync();
+                return Convert.ToInt32(res);
+            }
+            catch (MySqlException ex)
+            {
+                ArchivoLog.RegistrarErrores(ex);
+                throw;
+            }
         }
 
-        public async Task<bool> ActualizarAsync(Modelo3D modelo3D)
+        public async Task<bool> ActualizarAsync(Modelo3D entidad)
         {
-            using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+            try
+            {
+                using var conn = await _conexion.ObtenerConexionAsync();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "sp_modelo3d_actualizar";
 
-            using var comando = new MySqlCommand(
-                "sp_modelo3d_actualizar",
-                conexion
-            );
+                AddParam(cmd, "p_id", entidad.id_modelo3d);
+                AddParam(cmd, "p_nombre", entidad.nombre);
+                AddParam(cmd, "p_archivo", entidad.archivo);
+                AddParam(cmd, "p_formato", entidad.formato);
+                AddParam(cmd, "p_descripcion", entidad.descripcion);
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_id_modelo3d",
-                modelo3D.IdModelo3d
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_nombre",
-                modelo3D.nombre
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_archivo",
-                modelo3D.archivo
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_formato",
-                modelo3D.formato
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_descripcion",
-                modelo3D.descripcion
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_fecha_creacion",
-                modelo3D.fecha_creacion
-            );
-
-            int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
-
-            return filasAfectadas > 0; 
+                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
+                return rows > 0;
+            }
+            catch (MySqlException ex)
+            {
+                ArchivoLog.RegistrarErrores(ex);
+                throw;
+            }
         }
 
         public async Task<bool> EliminarAsync(int id)
         {
-            using var conexion =
-       (MySqlConnection)await _conexion.obtenerConexionAsync();
+            try
+            {
+                using var conn = await _conexion.ObtenerConexionAsync();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "sp_modelo3d_eliminar";
 
-            using var comando = new MySqlCommand(
-                "sp_modelo3d_eliminar",
-                conexion
-            );
+                AddParam(cmd, "p_id", id);
 
-            comando.CommandType = CommandType.StoredProcedure;
+                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
+                return rows > 0;
+            }
+            catch (MySqlException ex)
+            {
+                ArchivoLog.RegistrarErrores(ex);
+                throw;
+            }
+        }
 
-            comando.Parameters.AddWithValue(
-                "p_id_modelo3d",
-                id
-            );
-
-            int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
-
-            return filasAfectadas > 0; 
+        private static void AddParam(IDbCommand cmd, string name, object? value)
+        {
+            var p = cmd.CreateParameter();
+            p.ParameterName = name;
+            p.Value = value ?? DBNull.Value;
+            cmd.Parameters.Add(p);
         }
     }
-} 
+}
