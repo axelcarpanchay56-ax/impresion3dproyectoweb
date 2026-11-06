@@ -1,21 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace impresion3d.Core.Entidades
 {
+    [Table("detalle_pedido")]
     internal class DetallePedido
     {
+        [Column("id_detalle_pedido")]
         public int IdDetallePedido { get; set; }
 
+        [Column("id_pedido")]
         public int id_pedido { get; set; }
 
+        [Column("id_producto")]
         public int id_producto { get; set; }
 
+        [Column("cantidad")]
         public int cantidad { get; set; }
 
+        [Column("precio_unitario")]
         public decimal precio_unitario { get; set; }
 
-        public decimal subtotal { get; set; } 
+        [Column("subtotal")]
+        public decimal subtotal { get; set; }
     }
-}
+} 

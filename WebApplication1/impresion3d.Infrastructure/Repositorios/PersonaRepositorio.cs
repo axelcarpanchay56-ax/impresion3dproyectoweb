@@ -149,6 +149,50 @@ namespace impresion3d.Infrastructure.Repositorios
 
             return null; 
         }
+        public async Task<bool> ExisteDniAsync(string dni)
+        {
+            using var conexion =
+                (MySqlConnection)await _conexion.obtenerConexionAsync();
+
+            using var comando = new MySqlCommand(
+                "sp_personas_existe_dni",
+                conexion
+            );
+
+            comando.CommandType = CommandType.StoredProcedure;
+
+            comando.Parameters.AddWithValue(
+                "p_dni",
+                dni
+            );
+
+            object? resultado =
+                await comando.ExecuteScalarAsync();
+
+            return Convert.ToBoolean(resultado);
+        }
+        public async Task<bool> ExisteEmailAsync(string email)
+        {
+            using var conexion =
+                (MySqlConnection)await _conexion.obtenerConexionAsync();
+
+            using var comando = new MySqlCommand(
+                "sp_personas_existe_email",
+                conexion
+            );
+
+            comando.CommandType = CommandType.StoredProcedure;
+
+            comando.Parameters.AddWithValue(
+                "p_email",
+                email
+            );
+
+            object? resultado =
+                await comando.ExecuteScalarAsync();
+
+            return Convert.ToBoolean(resultado);
+        } 
 
         public async Task<int> CrearAsync(Persona persona)
         {
@@ -175,7 +219,75 @@ namespace impresion3d.Infrastructure.Repositorios
 
             return filasAfectadas;
         }
+        public async Task<List<Persona>> BuscarAsync(string buscar)
+        {
+            var personas = new List<Persona>();
 
+            using var conexion =
+                (MySqlConnection)await _conexion.obtenerConexionAsync();
+
+            using var comando = new MySqlCommand(
+                "sp_personas_buscar",
+                conexion
+            );
+
+            comando.CommandType = CommandType.StoredProcedure;
+
+            comando.Parameters.AddWithValue(
+                "p_buscar",
+                buscar
+            );
+
+            using var reader = await comando.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                var persona = new Persona
+                {
+                    IdPersona = Convert.ToInt32(reader["id_persona"]),
+                    Dni = reader["dni"].ToString(),
+                    Nombre = reader["nombre"].ToString(),
+                    Apellido = reader["apellido"].ToString(),
+                    Telefono = reader["telefono"] == DBNull.Value
+                        ? null
+                        : reader["telefono"].ToString(),
+                    Email = reader["email"] == DBNull.Value
+                        ? null
+                        : reader["email"].ToString(),
+                    Direccion = reader["direccion"] == DBNull.Value
+                        ? null
+                        : reader["direccion"].ToString(),
+                    Activo = Convert.ToBoolean(reader["activo"]),
+                    FechaAlta = Convert.ToDateTime(reader["fecha_alta"])
+                };
+
+                personas.Add(persona);
+            }
+
+            return personas;
+        }
+        public async Task<bool> EliminarAsync(int id)
+        {
+            using var conexion =
+                (MySqlConnection)await _conexion.obtenerConexionAsync();
+
+            using var comando = new MySqlCommand(
+                "sp_personas_eliminar",
+                conexion
+            );
+
+            comando.CommandType = CommandType.StoredProcedure;
+
+            comando.Parameters.AddWithValue(
+                "p_id_persona",
+                id
+            );
+
+            int filasAfectadas =
+                await comando.ExecuteNonQueryAsync();
+
+            return filasAfectadas > 0;
+        } 
         public async Task<bool> ActualizarAsync(Persona persona)
         {
             using var conexion =

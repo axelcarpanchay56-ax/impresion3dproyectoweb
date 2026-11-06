@@ -1,4 +1,5 @@
-﻿using impresion3d.Api.DTOs;
+﻿using FluentValidation;
+using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Servicios;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +11,14 @@ namespace impresion3d.Api.Controllers
     public class PersonasController : ControllerBase
     {
         private readonly ServicioPersona _servicio;
+        private readonly IValidator<CrearPersonaDto> _validatorCrearPersona;
 
-        public PersonasController(ServicioPersona servicio)
+        public PersonasController(
+            ServicioPersona servicio,
+            IValidator<CrearPersonaDto> validatorCrearPersona)
         {
             _servicio = servicio;
+            _validatorCrearPersona = validatorCrearPersona;
         }
 
         [HttpGet]
@@ -34,7 +39,7 @@ namespace impresion3d.Api.Controllers
                 Activo = persona.Activo
             }).ToList();
 
-            return Ok(personasDto); 
+            return Ok(personasDto);
         }
 
         [HttpGet("{id}")]
@@ -60,18 +65,71 @@ namespace impresion3d.Api.Controllers
                 Activo = persona.Activo
             };
 
-            return Ok(personaDto); 
+            return Ok(personaDto);
         }
+        [HttpGet("buscar")]
+        public async Task<IActionResult> Buscar([FromQuery] string termino)
+        {
+            try
+            {
+                var personas =
+                    await _servicio.BuscarAsync(termino);
+
+                var personasDto = personas.Select(persona => new PersonaDto
+                {
+                    IdPersona = persona.IdPersona,
+                    Dni = persona.Dni,
+                    Nombre = persona.Nombre,
+                    Apellido = persona.Apellido,
+                    Telefono = persona.Telefono,
+                    Email = persona.Email,
+                    Direccion = persona.Direccion,
+                    FechaAlta = persona.FechaAlta,
+                    Activo = persona.Activo
+                }).ToList();
+
+                return Ok(personasDto);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Eliminar(int id)
+        {
+            try
+            {
+                bool resultado =
+                    await _servicio.EliminarAsync(id);
+
+                if (!resultado)
+                {
+                    return NotFound(
+                        "Persona no encontrada."
+                    );
+                }
+
+                return Ok(
+                    "Persona eliminada lógicamente correctamente."
+                );
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+        } 
 
         [HttpGet("dni/{dni}")]
         public async Task<IActionResult> GetByDni(string dni)
         {
             var persona = await _servicio.GetByDniAsync(dni);
-
-            if (persona == null)
-            {
-                return NotFound();
-            }
 
             if (persona == null)
             {
@@ -92,10 +150,28 @@ namespace impresion3d.Api.Controllers
             };
 
             return Ok(personaDto);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Crear(CrearPersonaDto dto)
+        {
+            var validationResultado =
+                await _validatorCrearPersona.ValidateAsync(dto);
+
+            if (!validationResultado.IsValid)
+            {
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
             }
 
-            [HttpPost]
-            public async Task<IActionResult> Crear(CrearPersonaDto dto)
+            try
             {
                 var persona = new Persona
                 {
@@ -109,15 +185,29 @@ namespace impresion3d.Api.Controllers
                     FechaAlta = DateTime.Now
                 };
 
-                int resultado = await _servicio.CrearAsync(persona);
+                int resultado =
+                    await _servicio.CrearAsync(persona);
 
                 if (resultado <= 0)
                 {
-                    return BadRequest("No se pudo crear la persona.");
+                    return BadRequest(
+                        "No se pudo crear la persona."
+                    );
                 }
 
-                return Ok("Persona creada correctamente.");
+                return Ok(
+                    "Persona creada correctamente."
+                );
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+        } 
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Actualizar(
             int id,
@@ -128,7 +218,9 @@ namespace impresion3d.Api.Controllers
 
             if (personaExistente == null)
             {
-                return NotFound("Persona no encontrada.");
+                return NotFound(
+                    "Persona no encontrada."
+                );
             }
 
             var persona = new Persona
@@ -161,19 +253,24 @@ namespace impresion3d.Api.Controllers
 
         [HttpPatch("{id}/estado")]
         public async Task<IActionResult> CambiarEstado(
-    int id,
-    bool activo)
+            int id,
+            bool activo)
         {
             var personaExistente =
                 await _servicio.GetByIdAsync(id);
 
             if (personaExistente == null)
             {
-                return NotFound("Persona no encontrada.");
+                return NotFound(
+                    "Persona no encontrada."
+                );
             }
 
             bool resultado =
-                await _servicio.CambiarEstadoAsync(id, activo);
+                await _servicio.CambiarEstadoAsync(
+                    id,
+                    activo
+                );
 
             if (!resultado)
             {
@@ -185,9 +282,6 @@ namespace impresion3d.Api.Controllers
             return Ok(
                 "Estado de la persona actualizado correctamente."
             );
-        } 
-
-
+        }
     }
-    }
- 
+} 

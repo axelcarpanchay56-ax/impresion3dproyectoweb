@@ -1,4 +1,7 @@
 using impresion3d.Infrastructure.ExtensionesServicios;
+using FluentValidation;
+using impresion3d.Api.DTOs;
+using impresion3d.Api.Validadores; 
 
 namespace WebApplication1
 {
@@ -11,7 +14,8 @@ namespace WebApplication1
             // Servicios
             builder.Services.AddControllers();
             builder.Services.AddInfrastructure(builder.Configuration);
-            
+            builder.Services.AddScoped<IValidator<CrearPersonaDto>, PersonaCrearValidator>(); 
+
 
             var app = builder.Build();
 

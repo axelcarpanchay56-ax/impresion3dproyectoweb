@@ -151,6 +151,70 @@ namespace impresion3d.Test
             Assert.NotNull(personaActualizada);
 
             Assert.False(personaActualizada.Activo);
+        }
+        [Fact]
+        public async Task ExisteDniAsync_DeberiaRetornarTrue()
+        {
+            string connectionString =
+                "Server=127.0.0.1;Database=db_impresiones3d;User Id=root;Password=root;Port=3306;";
+
+            var conexion = new MyConexion(connectionString);
+
+            var repositorio =
+                new PersonaRepositorio(conexion);
+
+            bool existe =
+                await repositorio.ExisteDniAsync("30111222");
+
+            Assert.True(existe);
+        }   
+        [Fact]
+        public async Task ExisteDniAsync_DeberiaRetornarFalse()
+        {
+            string connectionString =
+                "Server=127.0.0.1;Database=db_impresiones3d;User Id=root;Password=root;Port=3306;";
+
+            var conexion = new MyConexion(connectionString);
+
+            var repositorio =
+                new PersonaRepositorio(conexion);
+
+            bool existe =
+                await repositorio.ExisteDniAsync("99999999");
+
+            Assert.False(existe);
+        }
+        [Fact]
+        public async Task ExisteEmailAsync_DeberiaRetornarTrue()
+        {
+            string connectionString =
+                "Server=127.0.0.1;Database=db_impresiones3d;User Id=root;Password=root;Port=3306;";
+
+            var conexion = new MyConexion(connectionString);
+
+            var repositorio =
+                new PersonaRepositorio(conexion);
+
+            bool existe =
+                await repositorio.ExisteEmailAsync("juan.perez@gmail.com");
+
+            Assert.True(existe);
+        }
+        [Fact]
+        public async Task ExisteEmailAsync_DeberiaRetornarFalse()
+        {
+            string connectionString =
+                "Server=127.0.0.1;Database=db_impresiones3d;User Id=root;Password=root;Port=3306;";
+
+            var conexion = new MyConexion(connectionString);
+
+            var repositorio =
+                new PersonaRepositorio(conexion);
+
+            bool existe =
+                await repositorio.ExisteEmailAsync("noexiste999@test.com");
+
+            Assert.False(existe);
         } 
     }
 }
