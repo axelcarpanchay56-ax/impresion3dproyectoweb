@@ -9,9 +9,9 @@ namespace impresion3d.Infrastructure.Repositorios
 {
     public class PersonaRepositorio : IPersonaRepositorio
     {
-        private readonly Imiconexion _conexion;
+        private readonly IMiConexion _conexion;
 
-        public PersonaRepositorio(Imiconexion conexion)
+        public PersonaRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
         } 
@@ -20,7 +20,7 @@ namespace impresion3d.Infrastructure.Repositorios
             var personas = new List<Persona>();
 
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_obtener_todas",
@@ -61,7 +61,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<Persona?> ObtenerPorIdAsync(int id)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_obtener_por_id",
@@ -107,7 +107,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<Persona?> ObtenerPorDniAsync(string dni)
         {
             using var conexion =
-       (MySqlConnection)await _conexion.obtenerConexionAsync();
+       (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_obtener_por_dni",
@@ -152,7 +152,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<bool> ExisteDniAsync(string dni)
         {
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_existe_dni",
@@ -174,7 +174,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<bool> ExisteEmailAsync(string email)
         {
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_existe_email",
@@ -197,7 +197,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<int> CrearAsync(Persona persona)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_crear",
@@ -224,7 +224,7 @@ namespace impresion3d.Infrastructure.Repositorios
             var personas = new List<Persona>();
 
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_buscar",
@@ -269,7 +269,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<bool> EliminarAsync(int id)
         {
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_eliminar",
@@ -291,7 +291,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<bool> ActualizarAsync(Persona persona)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_actualizar",
@@ -318,7 +318,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<bool> CambiarEstadoAsync(int id, bool activo)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_personas_cambiar_estado",

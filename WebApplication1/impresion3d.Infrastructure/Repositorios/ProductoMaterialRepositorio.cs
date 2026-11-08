@@ -7,9 +7,9 @@ namespace impresion3d.Infrastructure.Repositorios
 {
     public class ProductoMaterialRepositorio : IProductoMaterialRepositorio
     {
-        private readonly Imiconexion _conexion;
+        private readonly IMiConexion _conexion;
 
-        public ProductoMaterialRepositorio(Imiconexion conexion)
+        public ProductoMaterialRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
         }
@@ -20,7 +20,7 @@ namespace impresion3d.Infrastructure.Repositorios
             var lista = new List<ProductoMaterial>();
 
             using var conexion =
-                (MySqlConnection)await _conexion.obtenerConexionAsync();
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_producto_material_obtener_por_producto",
@@ -55,7 +55,7 @@ namespace impresion3d.Infrastructure.Repositorios
             ProductoMaterial productoMaterial)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_producto_material_asignar",
@@ -89,7 +89,7 @@ namespace impresion3d.Infrastructure.Repositorios
             ProductoMaterial productoMaterial)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_producto_material_actualizar",
@@ -124,7 +124,7 @@ namespace impresion3d.Infrastructure.Repositorios
             int idMaterial)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_producto_material_eliminar",

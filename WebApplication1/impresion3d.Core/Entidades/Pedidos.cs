@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace impresion3d.Core.Entidades
 {
     [Table("pedidos")]
-    internal class Pedidos
+    public class Pedidos
     {
         [Column("id_pedido")]
-        public int IdPedido { get; set; }
+        public int id_pedido { get; set; }
 
         [Column("id_cliente")]
         public int id_cliente { get; set; }
@@ -16,10 +16,10 @@ namespace impresion3d.Core.Entidades
         public DateTime fecha_hora { get; set; }
 
         [Column("fecha_entrega_estimada")]
-        public DateTime fecha_entrega_estimada { get; set; }
+        public DateTime? fecha_entrega_estimada { get; set; }
 
         [Column("fecha_entrega_real")]
-        public DateTime fecha_entrega_real { get; set; }
+        public DateTime? fecha_entrega_real { get; set; }
 
         [Column("id_estado")]
         public int id_estado { get; set; }

@@ -1,13 +1,12 @@
-﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace impresion3d.Core.Entidades
 {
     [Table("detalle_pedido")]
-    internal class DetallePedido
+    public class DetallePedido
     {
         [Column("id_detalle_pedido")]
-        public int IdDetallePedido { get; set; }
+        public int id_detalle_pedido { get; set; }
 
         [Column("id_pedido")]
         public int id_pedido { get; set; }

@@ -1,18 +1,17 @@
-﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace impresion3d.Core.Entidades
 {
     [Table("impresora_material")]
-    internal class ImpresoraMaterial
+    public class ImpresoraMaterial
     {
         [Column("id_impresora")]
-        public int IdImpresora { get; set; }
+        public int id_impresora { get; set; }
 
         [Column("id_material")]
-        public int IdMaterial { get; set; }
+        public int id_material { get; set; }
 
         [Column("observacion")]
-        public string observacion { get; set; }
+        public string? observacion { get; set; }
     }
 } 

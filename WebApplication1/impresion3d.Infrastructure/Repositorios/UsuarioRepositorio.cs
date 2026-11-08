@@ -7,9 +7,9 @@ namespace impresion3d.Infrastructure.Repositorios
 {
     public class UsuarioRepositorio : IUsuarioRepositorio
     {
-        private readonly Imiconexion _conexion;
+        private readonly IMiConexion _conexion;
 
-        public UsuarioRepositorio(Imiconexion conexion)
+        public UsuarioRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
         }
@@ -19,7 +19,7 @@ namespace impresion3d.Infrastructure.Repositorios
             string passwordHash)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.obtenerConexionAsync();
+        (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_usuarios_login",
@@ -58,7 +58,7 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<int> CrearAsync(Usuarios usuario)
         {
             using var conexion =
-       (MySqlConnection)await _conexion.obtenerConexionAsync();
+       (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_usuarios_crear",
@@ -107,7 +107,7 @@ namespace impresion3d.Infrastructure.Repositorios
             bool activo)
         {
             using var conexion =
-       (MySqlConnection)await _conexion.obtenerConexionAsync();
+       (MySqlConnection)await _conexion.ObtenerConexionAsync();
 
             using var comando = new MySqlCommand(
                 "sp_usuarios_cambiar_estado",

@@ -1,15 +1,14 @@
-﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace impresion3d.Core.Entidades
 {
     [Table("estado_pedido")]
-    internal class EstadoPedido
+    public class EstadoPedido
     {
         [Column("id_estado_pedido")]
-        public int IdEstadoPedido { get; set; }
+        public int id_estado_pedido { get; set; }
 
         [Column("nombre")]
-        public string nombre { get; set; }
+        public string nombre { get; set; } = string.Empty;
     }
 } 

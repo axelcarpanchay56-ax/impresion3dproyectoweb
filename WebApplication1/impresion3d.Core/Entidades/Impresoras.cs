@@ -1,22 +1,22 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace impresion3d.Core.Entidades
 {
     [Table("impresoras")]
-    internal class Impresoras
+    public class Impresoras
     {
         [Column("id_impresora")]
-        public int IdImpresora { get; set; }
+        public int id_impresora { get; set; }
 
         [Column("nombre")]
-        public string nombre { get; set; }
+        public string nombre { get; set; } = string.Empty;
 
         [Column("marca")]
-        public string marca { get; set; }
+        public string marca { get; set; } = string.Empty;
 
         [Column("modelo")]
-        public string modelo { get; set; }
+        public string modelo { get; set; } = string.Empty;
 
         [Column("volumen_x")]
         public decimal volumen_x { get; set; }
@@ -28,7 +28,7 @@ namespace impresion3d.Core.Entidades
         public decimal volumen_z { get; set; }
 
         [Column("tecnologia")]
-        public string tecnologia { get; set; }
+        public string tecnologia { get; set; } = string.Empty;
 
         [Column("estado")]
         public bool estado { get; set; }

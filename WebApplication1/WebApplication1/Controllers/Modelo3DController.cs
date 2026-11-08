@@ -1,7 +1,7 @@
-﻿using impresion3d.Api.DTOs;
+using Microsoft.AspNetCore.Mvc;
+using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Servicios;
-using Microsoft.AspNetCore.Mvc;
 
 namespace impresion3d.Api.Controllers
 {
@@ -17,93 +17,74 @@ namespace impresion3d.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Modelo3DDto>>> ObtenerTodos()
+        public async Task<IActionResult> Get()
         {
-            var lista = await _servicio.ObtenerTodosAsync();
-
-            var resultado = lista.Select(m => new Modelo3DDto
+            var modelos = await _servicio.ObtenerTodosAsync();
+            var dtos = modelos.Select(m => new Modelo3DDto
             {
-                IdModelo3d = m.IdModelo3d,
+                id_modelo3d = m.id_modelo3d,
                 nombre = m.nombre,
                 archivo = m.archivo,
                 formato = m.formato,
                 descripcion = m.descripcion,
                 fecha_creacion = m.fecha_creacion
-            }).ToList();
-
-            return Ok(resultado);
+            });
+            return Ok(dtos);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Modelo3DDto>> ObtenerPorId(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var modelo = await _servicio.ObtenerPorIdAsync(id);
-
-            if (modelo == null)
-                return NotFound();
-
+            var m = await _servicio.ObtenerPorIdAsync(id);
             var dto = new Modelo3DDto
             {
-                IdModelo3d = modelo.IdModelo3d,
-                nombre = modelo.nombre,
-                archivo = modelo.archivo,
-                formato = modelo.formato,
-                descripcion = modelo.descripcion,
-                fecha_creacion = modelo.fecha_creacion
+                id_modelo3d = m.id_modelo3d,
+                nombre = m.nombre,
+                archivo = m.archivo,
+                formato = m.formato,
+                descripcion = m.descripcion,
+                fecha_creacion = m.fecha_creacion
             };
-
             return Ok(dto);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Crear(CrearModelo3DDto dto)
+        public async Task<IActionResult> Post([FromBody] Modelo3DCrearDto dto)
         {
-            var modelo = new Modelo3D
+            var entidad = new Modelo3D
             {
                 nombre = dto.nombre,
                 archivo = dto.archivo,
                 formato = dto.formato,
                 descripcion = dto.descripcion,
-                fecha_creacion = dto.fecha_creacion
+                fecha_creacion = DateTime.Now
             };
 
-            int id = await _servicio.CrearAsync(modelo);
-
-            return Ok(id);
+            var id = await _servicio.CrearAsync(entidad);
+            return CreatedAtAction(nameof(GetById), new { id }, new { id });
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> Actualizar(
-            int id,
-            ActualizarModelo3DDto dto)
+        public async Task<IActionResult> Put(int id, [FromBody] Modelo3DActualizacionDto dto)
         {
-            var modelo = new Modelo3D
+            var entidad = new Modelo3D
             {
-                IdModelo3d = id,
+                id_modelo3d = id,
                 nombre = dto.nombre,
                 archivo = dto.archivo,
                 formato = dto.formato,
-                descripcion = dto.descripcion,
-                fecha_creacion = dto.fecha_creacion
+                descripcion = dto.descripcion
             };
 
-            bool resultado = await _servicio.ActualizarAsync(modelo);
-
-            if (resultado)
-                return Ok();
-
-            return NotFound();
+            await _servicio.ActualizarAsync(entidad);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult> Eliminar(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            bool resultado = await _servicio.EliminarAsync(id);
-
-            if (resultado)
-                return Ok();
-
-            return NotFound();
+            await _servicio.EliminarAsync(id);
+            return NoContent();
         }
     }
-} 
+}

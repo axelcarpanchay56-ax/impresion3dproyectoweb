@@ -5,9 +5,9 @@ using System.Data;
 
 namespace impresion3d.Core.Interfaces
 {
-    public interface Imiconexion
+    public interface IMiConexion
     {
-        IDbConnection obtenerConexion();
-        Task<IDbConnection> obtenerConexionAsync();
+        IDbConnection ObtenerConexion();
+        Task<IDbConnection> ObtenerConexionAsync();
     }
 }

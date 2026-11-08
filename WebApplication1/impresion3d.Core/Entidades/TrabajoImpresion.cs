@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace impresion3d.Core.Entidades
 {
     [Table("trabajo_impresion")]
-    internal class TrabajoImpresion
+    public class TrabajoImpresion
     {
         [Column("id_trabajo_impresion")]
-        public int IdTrabajoImpresion { get; set; }
+        public int id_trabajo_impresion { get; set; }
 
         [Column("id_pedido")]
         public int id_pedido { get; set; }
@@ -43,6 +43,6 @@ namespace impresion3d.Core.Entidades
         public decimal peso_estimado { get; set; }
 
         [Column("observacion")]
-        public string observacion { get; set; }
+        public string observacion { get; set; } = string.Empty;
     }
-}  
+} 
