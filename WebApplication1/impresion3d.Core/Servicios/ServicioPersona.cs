@@ -28,6 +28,26 @@ namespace impresion3d.Core.Servicios
 
             return await _repositorio.ObtenerPorIdAsync(id);
         }
+        public async Task<List<Persona>> BuscarAsync(string buscar)
+        {
+            if (string.IsNullOrWhiteSpace(buscar))
+            {
+                throw new ArgumentException(
+                    "El término de búsqueda no puede estar vacío"
+                );
+            }
+
+            if (buscar.Trim().Length < 2)
+            {
+                throw new ArgumentException(
+                    "El término de búsqueda debe tener al menos 2 caracteres"
+                );
+            }
+
+            return await _repositorio.BuscarAsync(
+                buscar.Trim()
+            );
+        } 
 
         public async Task<Persona?> GetByDniAsync(string dni)
         {
@@ -40,6 +60,7 @@ namespace impresion3d.Core.Servicios
 
             return await _repositorio.ObtenerPorDniAsync(dni);
         }
+
         public async Task<int> CrearAsync(Persona persona)
         {
             if (string.IsNullOrWhiteSpace(persona.Dni))
@@ -61,6 +82,29 @@ namespace impresion3d.Core.Servicios
                 throw new ArgumentException(
                     "El apellido no puede estar vacío"
                 );
+            }
+
+            bool existeDni =
+                await _repositorio.ExisteDniAsync(persona.Dni);
+
+            if (existeDni)
+            {
+                throw new ArgumentException(
+                    "Ya existe una persona con ese DNI"
+                );
+            }
+
+            if (!string.IsNullOrWhiteSpace(persona.Email))
+            {
+                bool existeEmail =
+                    await _repositorio.ExisteEmailAsync(persona.Email);
+
+                if (existeEmail)
+                {
+                    throw new ArgumentException(
+                        "Ya existe una persona con ese email"
+                    );
+                }
             }
 
             return await _repositorio.CrearAsync(persona);
@@ -109,6 +153,25 @@ namespace impresion3d.Core.Servicios
             }
 
             return await _repositorio.CambiarEstadoAsync(id, activo);
+        }
+        public async Task<bool> EliminarAsync(int id)
+        {
+            if (id <= 0)
+            {
+                throw new ArgumentException(
+                    "El ID debe ser mayor a 0"
+                );
+            }
+
+            var persona =
+                await _repositorio.ObtenerPorIdAsync(id);
+
+            if (persona == null)
+            {
+                return false;
+            }
+
+            return await _repositorio.EliminarAsync(id);
         } 
     }
 } 
