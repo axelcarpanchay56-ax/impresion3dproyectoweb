@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using AutoMapper;
+using FluentValidation;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Servicios;
@@ -12,13 +13,16 @@ namespace impresion3d.Api.Controllers
     {
         private readonly ServicioPersona _servicio;
         private readonly IValidator<CrearPersonaDto> _validatorCrearPersona;
+        private readonly IMapper _mapper;
 
         public PersonasController(
             ServicioPersona servicio,
-            IValidator<CrearPersonaDto> validatorCrearPersona)
+            IValidator<CrearPersonaDto> validatorCrearPersona,
+            IMapper mapper)
         {
             _servicio = servicio;
             _validatorCrearPersona = validatorCrearPersona;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -26,18 +30,8 @@ namespace impresion3d.Api.Controllers
         {
             var personas = await _servicio.AllAsync();
 
-            var personasDto = personas.Select(persona => new PersonaDto
-            {
-                IdPersona = persona.IdPersona,
-                Dni = persona.Dni,
-                Nombre = persona.Nombre,
-                Apellido = persona.Apellido,
-                Telefono = persona.Telefono,
-                Email = persona.Email,
-                Direccion = persona.Direccion,
-                FechaAlta = persona.FechaAlta,
-                Activo = persona.Activo
-            }).ToList();
+            var personasDto =
+                _mapper.Map<List<PersonaDto>>(personas);
 
             return Ok(personasDto);
         }
@@ -45,48 +39,31 @@ namespace impresion3d.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var persona = await _servicio.GetByIdAsync(id);
+            var persona =
+                await _servicio.GetByIdAsync(id);
 
             if (persona == null)
             {
                 return NotFound();
             }
 
-            var personaDto = new PersonaDto
-            {
-                IdPersona = persona.IdPersona,
-                Dni = persona.Dni,
-                Nombre = persona.Nombre,
-                Apellido = persona.Apellido,
-                Telefono = persona.Telefono,
-                Email = persona.Email,
-                Direccion = persona.Direccion,
-                FechaAlta = persona.FechaAlta,
-                Activo = persona.Activo
-            };
+            var personaDto =
+                _mapper.Map<PersonaDto>(persona);
 
             return Ok(personaDto);
         }
+
         [HttpGet("buscar")]
-        public async Task<IActionResult> Buscar([FromQuery] string termino)
+        public async Task<IActionResult> Buscar(
+            [FromQuery] string termino)
         {
             try
             {
                 var personas =
                     await _servicio.BuscarAsync(termino);
 
-                var personasDto = personas.Select(persona => new PersonaDto
-                {
-                    IdPersona = persona.IdPersona,
-                    Dni = persona.Dni,
-                    Nombre = persona.Nombre,
-                    Apellido = persona.Apellido,
-                    Telefono = persona.Telefono,
-                    Email = persona.Email,
-                    Direccion = persona.Direccion,
-                    FechaAlta = persona.FechaAlta,
-                    Activo = persona.Activo
-                }).ToList();
+                var personasDto =
+                    _mapper.Map<List<PersonaDto>>(personas);
 
                 return Ok(personasDto);
             }
@@ -98,6 +75,7 @@ namespace impresion3d.Api.Controllers
                 });
             }
         }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Eliminar(int id)
         {
@@ -124,36 +102,28 @@ namespace impresion3d.Api.Controllers
                     Mensaje = ex.Message
                 });
             }
-        } 
+        }
 
         [HttpGet("dni/{dni}")]
         public async Task<IActionResult> GetByDni(string dni)
         {
-            var persona = await _servicio.GetByDniAsync(dni);
+            var persona =
+                await _servicio.GetByDniAsync(dni);
 
             if (persona == null)
             {
                 return NotFound();
             }
 
-            var personaDto = new PersonaDto
-            {
-                IdPersona = persona.IdPersona,
-                Dni = persona.Dni,
-                Nombre = persona.Nombre,
-                Apellido = persona.Apellido,
-                Telefono = persona.Telefono,
-                Email = persona.Email,
-                Direccion = persona.Direccion,
-                FechaAlta = persona.FechaAlta,
-                Activo = persona.Activo
-            };
+            var personaDto =
+                _mapper.Map<PersonaDto>(persona);
 
             return Ok(personaDto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Crear(CrearPersonaDto dto)
+        public async Task<IActionResult> Crear(
+            CrearPersonaDto dto)
         {
             var validationResultado =
                 await _validatorCrearPersona.ValidateAsync(dto);
@@ -173,17 +143,11 @@ namespace impresion3d.Api.Controllers
 
             try
             {
-                var persona = new Persona
-                {
-                    Dni = dto.Dni,
-                    Nombre = dto.Nombre,
-                    Apellido = dto.Apellido,
-                    Telefono = dto.Telefono,
-                    Email = dto.Email,
-                    Direccion = dto.Direccion,
-                    Activo = true,
-                    FechaAlta = DateTime.Now
-                };
+                var persona =
+                    _mapper.Map<Persona>(dto);
+
+                persona.Activo = true;
+                persona.FechaAlta = DateTime.Now;
 
                 int resultado =
                     await _servicio.CrearAsync(persona);
@@ -206,7 +170,7 @@ namespace impresion3d.Api.Controllers
                     Mensaje = ex.Message
                 });
             }
-        } 
+        }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Actualizar(
@@ -223,18 +187,10 @@ namespace impresion3d.Api.Controllers
                 );
             }
 
-            var persona = new Persona
-            {
-                IdPersona = id,
-                Dni = dto.Dni,
-                Nombre = dto.Nombre,
-                Apellido = dto.Apellido,
-                Telefono = dto.Telefono,
-                Email = dto.Email,
-                Direccion = dto.Direccion,
-                Activo = dto.Activo,
-                FechaAlta = dto.FechaAlta
-            };
+            var persona =
+                _mapper.Map<Persona>(dto);
+
+            persona.IdPersona = id;
 
             bool resultado =
                 await _servicio.ActualizarAsync(persona);

@@ -131,5 +131,45 @@ namespace impresion3d.Infrastructure.Repositorios
 
             return filasAfectadas > 0; 
         }
+        public async Task<Usuarios?> ObtenerPorUsuarioAsync(string usuario)
+        {
+            using var conexion =
+                (MySqlConnection)await _conexion.ObtenerConexionAsync();
+
+            using var comando = new MySqlCommand(
+                "sp_usuario_obtener_por_usuario",
+                conexion
+            );
+
+            comando.CommandType = CommandType.StoredProcedure;
+
+            comando.Parameters.AddWithValue(
+                "p_usuario",
+                usuario
+            );
+
+            using var reader = await comando.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                Usuarios usuarioEncontrado = new Usuarios
+                {
+                    IdUsuario = Convert.ToInt32(reader["id_usuario"]),
+                    id_persona = Convert.ToInt32(reader["id_persona"]),
+                    usuario = reader["usuario"].ToString(),
+                    password_hash = reader["password_hash"].ToString(),
+                    activo = Convert.ToBoolean(reader["activo"]),
+                    fecha_creacion = Convert.ToDateTime(reader["fecha_creacion"]),
+
+                    ultimo_acceso = reader["ultimo_acceso"] == DBNull.Value
+                        ? null
+                        : Convert.ToDateTime(reader["ultimo_acceso"])
+                };
+
+                return usuarioEncontrado;
+            }
+
+            return null;
+        } 
     }
 }
