@@ -59,7 +59,12 @@ namespace impresion3d.Core.Servicios
                 );
             }
 
-            return await _repositorio.CrearAsync(usuario);
+            usuario.password_hash =
+                ServicioPassword.HashPassword(
+                    usuario.password_hash
+                );
+
+            return await _repositorio.CrearAsync(usuario); 
         }
 
         public async Task<bool> CambiarEstadoAsync(

@@ -2,7 +2,7 @@
 using impresion3d.Core.Interfaces;
 using System.Data;
 using MySqlConnector;
-
+using Dapper; 
 
 
 namespace impresion3d.Infrastructure.Repositorios
@@ -14,303 +14,214 @@ namespace impresion3d.Infrastructure.Repositorios
         public PersonaRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
+
+            DefaultTypeMap.MatchNamesWithUnderscores = true; 
         } 
         public async Task<List<Persona>> ObtenerTodasAsync()
         {
-            var personas = new List<Persona>();
 
-            using var conexion =
-                (MySqlConnection)await _conexion.ObtenerConexionAsync();
-
-            using var comando = new MySqlCommand(
-                "sp_personas_obtener_todas",
-                conexion
-            );
-
-            comando.CommandType = CommandType.StoredProcedure;
-
-            using var reader = await comando.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
             {
-                Persona persona = new Persona
-                {
-                    IdPersona = Convert.ToInt32(reader["id_persona"]),
-                    Dni = reader["dni"].ToString(),
-                    Nombre = reader["nombre"].ToString(),
-                    Apellido = reader["apellido"].ToString(),
-                    Telefono = reader["telefono"] == DBNull.Value
-                        ? null
-                        : reader["telefono"].ToString(),
-                    Email = reader["email"] == DBNull.Value
-                        ? null
-                        : reader["email"].ToString(),
-                    Direccion = reader["direccion"] == DBNull.Value
-                        ? null
-                        : reader["direccion"].ToString(),
-                    Activo = Convert.ToBoolean(reader["activo"]),
-                    FechaAlta = Convert.ToDateTime(reader["fecha_alta"])
-                };
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                personas.Add(persona);
+                var personas = await conexion.QueryAsync<Persona>(
+                    "sp_personas_obtener_todas",
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return personas.ToList();
             }
-
-            return personas;
         }
 
         public async Task<Persona?> ObtenerPorIdAsync(int id)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+        await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_personas_obtener_por_id",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_id_persona",
-                id
+                id,
+                DbType.Int32,
+                ParameterDirection.Input
             );
 
-            using var reader = await comando.ExecuteReaderAsync();
+            var persona =
+                await conexion.QueryFirstOrDefaultAsync<Persona>(
+                    "sp_personas_obtener_por_id",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            if (await reader.ReadAsync())
-            {
-                Persona persona = new Persona
-                {
-                    IdPersona = Convert.ToInt32(reader["id_persona"]),
-                    Dni = reader["dni"].ToString(),
-                    Nombre = reader["nombre"].ToString(),
-                    Apellido = reader["apellido"].ToString(),
-                    Telefono = reader["telefono"] == DBNull.Value
-                        ? null
-                        : reader["telefono"].ToString(),
-                    Email = reader["email"] == DBNull.Value
-                        ? null
-                        : reader["email"].ToString(),
-                    Direccion = reader["direccion"] == DBNull.Value
-                        ? null
-                        : reader["direccion"].ToString(),
-                    Activo = Convert.ToBoolean(reader["activo"]),
-                    FechaAlta = Convert.ToDateTime(reader["fecha_alta"])
-                };
+            return persona; 
 
-                return persona;
-            }
-
-            return null;
         }
 
         public async Task<Persona?> ObtenerPorDniAsync(string dni)
         {
             using var conexion =
-       (MySqlConnection)await _conexion.ObtenerConexionAsync();
+         await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_personas_obtener_por_dni",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_dni",
-                dni
+                dni,
+                DbType.String,
+                ParameterDirection.Input
             );
 
-            using var reader = await comando.ExecuteReaderAsync();
+            var persona =
+                await conexion.QueryFirstOrDefaultAsync<Persona>(
+                    "sp_personas_obtener_por_dni",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            if (await reader.ReadAsync())
-            {
-                Persona persona = new Persona
-                {
-                    IdPersona = Convert.ToInt32(reader["id_persona"]),
-                    Dni = reader["dni"].ToString(),
-                    Nombre = reader["nombre"].ToString(),
-                    Apellido = reader["apellido"].ToString(),
-                    Telefono = reader["telefono"] == DBNull.Value
-                        ? null
-                        : reader["telefono"].ToString(),
-                    Email = reader["email"] == DBNull.Value
-                        ? null
-                        : reader["email"].ToString(),
-                    Direccion = reader["direccion"] == DBNull.Value
-                        ? null
-                        : reader["direccion"].ToString(),
-                    Activo = Convert.ToBoolean(reader["activo"]),
-                    FechaAlta = Convert.ToDateTime(reader["fecha_alta"])
-                };
-
-                return persona;
-            }
-
-            return null; 
+            return persona; 
         }
         public async Task<bool> ExisteDniAsync(string dni)
         {
             using var conexion =
-                (MySqlConnection)await _conexion.ObtenerConexionAsync();
+        await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_personas_existe_dni",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_dni",
-                dni
+                dni,
+                DbType.String,
+                ParameterDirection.Input
             );
 
-            object? resultado =
-                await comando.ExecuteScalarAsync();
+            var resultado =
+                await conexion.ExecuteScalarAsync<bool>(
+                    "sp_personas_existe_dni",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return Convert.ToBoolean(resultado);
+            return resultado; 
         }
         public async Task<bool> ExisteEmailAsync(string email)
         {
             using var conexion =
-                (MySqlConnection)await _conexion.ObtenerConexionAsync();
+       await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_personas_existe_email",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_email",
-                email
+                email,
+                DbType.String,
+                ParameterDirection.Input
             );
 
-            object? resultado =
-                await comando.ExecuteScalarAsync();
+            var resultado =
+                await conexion.ExecuteScalarAsync<bool>(
+                    "sp_personas_existe_email",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return Convert.ToBoolean(resultado);
+            return resultado; 
         } 
 
         public async Task<int> CrearAsync(Persona persona)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+         await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_personas_crear",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
+            parametros.Add("p_dni", persona.Dni);
+            parametros.Add("p_nombre", persona.Nombre);
+            parametros.Add("p_apellido", persona.Apellido);
+            parametros.Add("p_telefono", persona.Telefono);
+            parametros.Add("p_email", persona.Email);
+            parametros.Add("p_direccion", persona.Direccion);
+            parametros.Add("p_activo", persona.Activo);
+            parametros.Add("p_fecha_alta", persona.FechaAlta);
 
-            comando.Parameters.AddWithValue("p_dni", persona.Dni);
-            comando.Parameters.AddWithValue("p_nombre", persona.Nombre);
-            comando.Parameters.AddWithValue("p_apellido", persona.Apellido);
-            comando.Parameters.AddWithValue("p_telefono", persona.Telefono);
-            comando.Parameters.AddWithValue("p_email", persona.Email);
-            comando.Parameters.AddWithValue("p_direccion", persona.Direccion);
-            comando.Parameters.AddWithValue("p_activo", persona.Activo);
-            comando.Parameters.AddWithValue("p_fecha_alta", persona.FechaAlta);
+            int filasAfectadas =
+                await conexion.ExecuteAsync(
+                    "sp_personas_crear",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            int filasAfectadas = await comando.ExecuteNonQueryAsync();
-
-            return filasAfectadas;
+            return filasAfectadas; 
         }
         public async Task<List<Persona>> BuscarAsync(string buscar)
         {
-            var personas = new List<Persona>();
-
             using var conexion =
-                (MySqlConnection)await _conexion.ObtenerConexionAsync();
+       await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_personas_buscar",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_buscar",
-                buscar
+                buscar,
+                DbType.String,
+                ParameterDirection.Input
             );
 
-            using var reader = await comando.ExecuteReaderAsync();
+            var personas =
+                await conexion.QueryAsync<Persona>(
+                    "sp_personas_buscar",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            while (await reader.ReadAsync())
-            {
-                var persona = new Persona
-                {
-                    IdPersona = Convert.ToInt32(reader["id_persona"]),
-                    Dni = reader["dni"].ToString(),
-                    Nombre = reader["nombre"].ToString(),
-                    Apellido = reader["apellido"].ToString(),
-                    Telefono = reader["telefono"] == DBNull.Value
-                        ? null
-                        : reader["telefono"].ToString(),
-                    Email = reader["email"] == DBNull.Value
-                        ? null
-                        : reader["email"].ToString(),
-                    Direccion = reader["direccion"] == DBNull.Value
-                        ? null
-                        : reader["direccion"].ToString(),
-                    Activo = Convert.ToBoolean(reader["activo"]),
-                    FechaAlta = Convert.ToDateTime(reader["fecha_alta"])
-                };
-
-                personas.Add(persona);
-            }
-
-            return personas;
+            return personas.ToList(); 
         }
         public async Task<bool> EliminarAsync(int id)
         {
             using var conexion =
-                (MySqlConnection)await _conexion.ObtenerConexionAsync();
+       await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_personas_eliminar",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_id_persona",
-                id
+                id,
+                DbType.Int32,
+                ParameterDirection.Input
             );
 
             int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
+                await conexion.ExecuteAsync(
+                    "sp_personas_eliminar",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return filasAfectadas > 0;
+            return filasAfectadas > 0; 
         } 
         public async Task<bool> ActualizarAsync(Persona persona)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+       await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_personas_actualizar",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
+            parametros.Add("p_id_persona", persona.IdPersona);
+            parametros.Add("p_dni", persona.Dni);
+            parametros.Add("p_nombre", persona.Nombre);
+            parametros.Add("p_apellido", persona.Apellido);
+            parametros.Add("p_telefono", persona.Telefono);
+            parametros.Add("p_email", persona.Email);
+            parametros.Add("p_direccion", persona.Direccion);
+            parametros.Add("p_activo", persona.Activo);
+            parametros.Add("p_fecha_alta", persona.FechaAlta);
 
-            comando.Parameters.AddWithValue("p_id_persona", persona.IdPersona);
-            comando.Parameters.AddWithValue("p_dni", persona.Dni);
-            comando.Parameters.AddWithValue("p_nombre", persona.Nombre);
-            comando.Parameters.AddWithValue("p_apellido", persona.Apellido);
-            comando.Parameters.AddWithValue("p_telefono", persona.Telefono);
-            comando.Parameters.AddWithValue("p_email", persona.Email);
-            comando.Parameters.AddWithValue("p_direccion", persona.Direccion);
-            comando.Parameters.AddWithValue("p_activo", persona.Activo);
-            comando.Parameters.AddWithValue("p_fecha_alta", persona.FechaAlta);
-
-            int filasAfectadas = await comando.ExecuteNonQueryAsync();
+            int filasAfectadas =
+                await conexion.ExecuteAsync(
+                    "sp_personas_actualizar",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
             return filasAfectadas > 0; 
         }
@@ -318,19 +229,19 @@ namespace impresion3d.Infrastructure.Repositorios
         public async Task<bool> CambiarEstadoAsync(int id, bool activo)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+       await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_personas_cambiar_estado",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
+            parametros.Add("p_id_persona", id);
+            parametros.Add("p_activo", activo);
 
-            comando.Parameters.AddWithValue("p_id_persona", id);
-            comando.Parameters.AddWithValue("p_activo", activo);
-
-            int filasAfectadas = await comando.ExecuteNonQueryAsync();
+            int filasAfectadas =
+                await conexion.ExecuteAsync(
+                    "sp_personas_cambiar_estado",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
             return filasAfectadas > 0; 
         }

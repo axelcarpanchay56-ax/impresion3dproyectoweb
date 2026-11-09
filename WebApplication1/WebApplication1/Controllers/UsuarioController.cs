@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
+using impresion3d.Core.Interfaces;
 using impresion3d.Core.Servicios;
+using Microsoft.AspNetCore.Authorization;
 
 namespace impresion3d.Api.Controllers
 {
@@ -10,19 +12,24 @@ namespace impresion3d.Api.Controllers
     public class UsuariosController : ControllerBase
     {
         private readonly ServicioUsuario _servicio;
+        private readonly IAutenticacionService _autenticacionService;
 
-        public UsuariosController(ServicioUsuario servicio)
+        public UsuariosController(
+            ServicioUsuario servicio,
+            IAutenticacionService autenticacionService)
         {
             _servicio = servicio;
+            _autenticacionService = autenticacionService;
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginUsuarioDto dto)
         {
-            var usuario = await _servicio.LoginAsync(
-                dto.Usuario,
-                dto.PasswordHash
-            );
+            var usuario =
+                await _autenticacionService.ValidarCredencialesAsync(
+                    dto.Usuario,
+                    dto.PasswordHash
+                );
 
             if (usuario == null)
             {
@@ -31,17 +38,23 @@ namespace impresion3d.Api.Controllers
                 );
             }
 
-            var usuarioDto = new UsuarioDto
-            {
-                IdUsuario = usuario.IdUsuario,
-                IdPersona = usuario.id_persona,
-                Usuario = usuario.usuario,
-                Activo = usuario.activo,
-                FechaCreacion = usuario.fecha_creacion,
-                UltimoAcceso = usuario.ultimo_acceso
-            };
+            var roles =
+                await _autenticacionService.ObtenerRolesAsync(
+                    usuario.IdUsuario
+                );
 
-            return Ok(usuarioDto);
+            var token =
+                _autenticacionService.GenerarToken(
+                    usuario,
+                    roles
+                );
+
+            return Ok(new
+            {
+                Token = token,
+                Usuario = usuario.usuario,
+                Roles = roles
+            });
         }
 
         [HttpPost]
@@ -94,5 +107,11 @@ namespace impresion3d.Api.Controllers
                 "Estado del usuario actualizado correctamente."
             );
         }
+        [Authorize]
+        [HttpGet("protegido")]
+        public IActionResult Protegido()
+        {
+            return Ok("Acceso autorizado.");
+        } 
     }
-}
+} 

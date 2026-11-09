@@ -6,6 +6,8 @@ namespace impresion3d.Core.Interfaces
     {
         Task<Usuarios?> LoginAsync(string usuario, string passwordHash);
 
+        Task<Usuarios?> ObtenerPorUsuarioAsync(string usuario);
+
         Task<int> CrearAsync(Usuarios usuario);
 
         Task<bool> CambiarEstadoAsync(int idUsuario, bool activo);
