@@ -192,19 +192,34 @@ namespace impresion3d.Api.Controllers
 
             persona.IdPersona = id;
 
-            bool resultado =
-                await _servicio.ActualizarAsync(persona);
-
-            if (!resultado)
+            if (persona.FechaAlta == default)
             {
-                return BadRequest(
-                    "No se pudo actualizar la persona."
-                );
+                persona.FechaAlta = personaExistente.FechaAlta;
             }
 
-            return Ok(
-                "Persona actualizada correctamente."
-            );
+            try
+            {
+                bool resultado =
+                    await _servicio.ActualizarAsync(persona);
+
+                if (!resultado)
+                {
+                    return BadRequest(
+                        "No se pudo actualizar la persona."
+                    );
+                }
+
+                return Ok(
+                    "Persona actualizada correctamente."
+                );
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPatch("{id}/estado")]

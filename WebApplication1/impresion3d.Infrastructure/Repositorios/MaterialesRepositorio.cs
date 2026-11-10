@@ -3,6 +3,7 @@ using impresion3d.Core.Entidades;
 using impresion3d.Core.Interfaces;
 using impresion3d.Infrastructure.Contexto;
 using MySqlConnector;
+using Dapper;
 
 namespace impresion3d.Infrastructure.Repositorios
 {
@@ -13,93 +14,82 @@ namespace impresion3d.Infrastructure.Repositorios
         public MaterialesRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
+
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         public async Task<List<Materiales>> ObtenerTodosAsync()
         {
-            var lista = new List<Materiales>();
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_materiales_obtener_todos";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    lista.Add(new Materiales
-                    {
-                        id_material = reader.GetInt32("id_material"),
-                        nombre = reader.GetString("nombre"),
-                        tipo = reader.GetString("tipo"),
-                        unidad_medida = reader.GetString("unidad_medida"),
-                        color = reader.GetString("color"),
-                        diametro = reader.IsDBNull(reader.GetOrdinal("diametro")) ? (decimal?)null : reader.GetDecimal("diametro"),
-                        activo = reader.GetBoolean("activo")
-                    });
-                }
+                var lista =
+                    await conexion.QueryAsync<Materiales>(
+                        "sp_materiales_obtener_todos",
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return lista.ToList();
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-            return lista;
         }
 
         public async Task<Materiales?> ObtenerPorIdAsync(int id)
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_materiales_obtener_por_id";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", id);
+                var parametros = new DynamicParameters();
 
-                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    return new Materiales
-                    {
-                        id_material = reader.GetInt32("id_material"),
-                        nombre = reader.GetString("nombre"),
-                        tipo = reader.GetString("tipo"),
-                        unidad_medida = reader.GetString("unidad_medida"),
-                        color = reader.GetString("color"),
-                        diametro = reader.IsDBNull(reader.GetOrdinal("diametro")) ? (decimal?)null : reader.GetDecimal("diametro"),
-                        activo = reader.GetBoolean("activo")
-                    };
-                }
+                parametros.Add(
+                    "p_id",
+                    id,
+                    DbType.Int32,
+                    ParameterDirection.Input
+                );
+
+                return await conexion.QueryFirstOrDefaultAsync<Materiales>(
+                    "sp_materiales_obtener_por_id",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-            return null;
         }
 
         public async Task<int> CrearAsync(Materiales entidad)
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_materiales_crear";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_nombre", entidad.nombre);
-                AddParam(cmd, "p_tipo", entidad.tipo);
-                AddParam(cmd, "p_unidad_medida", entidad.unidad_medida);
-                AddParam(cmd, "p_color", entidad.color);
-                AddParam(cmd, "p_diametro", entidad.diametro);
-                AddParam(cmd, "p_activo", entidad.activo);
+                var parametros = new DynamicParameters();
 
-                var res = await (cmd as MySqlCommand)!.ExecuteScalarAsync();
-                return Convert.ToInt32(res);
+                parametros.Add("p_nombre", entidad.nombre);
+                parametros.Add("p_tipo", entidad.tipo);
+                parametros.Add("p_unidad_medida", entidad.unidad_medida);
+                parametros.Add("p_color", entidad.color);
+                parametros.Add("p_diametro", entidad.diametro);
+                parametros.Add("p_activo", entidad.activo);
+
+                return await conexion.ExecuteScalarAsync<int>(
+                    "sp_materiales_crear",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
             }
             catch (MySqlException ex)
             {
@@ -112,21 +102,27 @@ namespace impresion3d.Infrastructure.Repositorios
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_materiales_actualizar";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", entidad.id_material);
-                AddParam(cmd, "p_nombre", entidad.nombre);
-                AddParam(cmd, "p_tipo", entidad.tipo);
-                AddParam(cmd, "p_unidad_medida", entidad.unidad_medida);
-                AddParam(cmd, "p_color", entidad.color);
-                AddParam(cmd, "p_diametro", entidad.diametro);
-                AddParam(cmd, "p_activo", entidad.activo);
+                var parametros = new DynamicParameters();
 
-                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
-                return rows > 0;
+                parametros.Add("p_id", entidad.id_material);
+                parametros.Add("p_nombre", entidad.nombre);
+                parametros.Add("p_tipo", entidad.tipo);
+                parametros.Add("p_unidad_medida", entidad.unidad_medida);
+                parametros.Add("p_color", entidad.color);
+                parametros.Add("p_diametro", entidad.diametro);
+                parametros.Add("p_activo", entidad.activo);
+
+                int filasAfectadas =
+                    await conexion.ExecuteAsync(
+                        "sp_materiales_actualizar",
+                        parametros,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return filasAfectadas > 0;
             }
             catch (MySqlException ex)
             {
@@ -139,29 +135,32 @@ namespace impresion3d.Infrastructure.Repositorios
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_materiales_eliminar";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", id);
+                var parametros = new DynamicParameters();
 
-                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
-                return rows > 0;
+                parametros.Add(
+                    "p_id",
+                    id,
+                    DbType.Int32,
+                    ParameterDirection.Input
+                );
+
+                int filasAfectadas =
+                    await conexion.ExecuteAsync(
+                        "sp_materiales_eliminar",
+                        parametros,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return filasAfectadas > 0;
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-        }
-
-        private static void AddParam(IDbCommand cmd, string name, object? value)
-        {
-            var p = cmd.CreateParameter();
-            p.ParameterName = name;
-            p.Value = value ?? DBNull.Value;
-            cmd.Parameters.Add(p);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Servicios;
@@ -10,10 +12,17 @@ namespace impresion3d.Api.Controllers
     public class ProductosController : ControllerBase
     {
         private readonly ServicioProducto _servicio;
+        private readonly IValidator<CrearProductoDto> _validatorCrearProducto;
+        private readonly IMapper _mapper;
 
-        public ProductosController(ServicioProducto servicio)
+        public ProductosController(
+            ServicioProducto servicio,
+            IValidator<CrearProductoDto> validatorCrearProducto,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorCrearProducto = validatorCrearProducto;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -22,16 +31,8 @@ namespace impresion3d.Api.Controllers
             var productos =
                 await _servicio.ObtenerTodosAsync();
 
-            var productosDto = productos.Select(producto => new ProductoDto
-            {
-                IdProducto = producto.IdProducto,
-                id_modelo3d = producto.id_modelo3d,
-                nombre = producto.nombre,
-                descripcion = producto.descripcion,
-                precio_venta = producto.precio_venta,
-                activo = producto.activo,
-                fecha_alta = producto.fecha_alta
-            }).ToList();
+            var productosDto =
+                _mapper.Map<List<ProductoDto>>(productos);
 
             return Ok(productosDto);
         }
@@ -39,57 +40,81 @@ namespace impresion3d.Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var producto =
-                await _servicio.ObtenerPorIdAsync(id);
-
-            if (producto == null)
+            try
             {
-                return NotFound(
-                    "Producto no encontrado."
-                );
+                var producto =
+                    await _servicio.ObtenerPorIdAsync(id);
+
+                if (producto == null)
+                {
+                    return NotFound(
+                        "Producto no encontrado."
+                    );
+                }
+
+                var productoDto =
+                    _mapper.Map<ProductoDto>(producto);
+
+                return Ok(productoDto);
             }
-
-            var productoDto = new ProductoDto
+            catch (ArgumentException ex)
             {
-                IdProducto = producto.IdProducto,
-                id_modelo3d = producto.id_modelo3d,
-                nombre = producto.nombre,
-                descripcion = producto.descripcion,
-                precio_venta = producto.precio_venta,
-                activo = producto.activo,
-                fecha_alta = producto.fecha_alta
-            };
-
-            return Ok(productoDto);
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Crear(
             CrearProductoDto dto)
         {
-            var producto = new Productos
-            {
-                id_modelo3d = dto.id_modelo3d,
-                nombre = dto.nombre,
-                descripcion = dto.descripcion,
-                precio_venta = dto.precio_venta,
-                activo = true,
-                fecha_alta = DateTime.Now
-            };
+            var validationResultado =
+                await _validatorCrearProducto.ValidateAsync(dto);
 
-            int resultado =
-                await _servicio.CrearAsync(producto);
-
-            if (resultado <= 0)
+            if (!validationResultado.IsValid)
             {
-                return BadRequest(
-                    "No se pudo crear el producto."
-                );
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
             }
 
-            return Ok(
-                "Producto creado correctamente."
-            );
+            try
+            {
+                var producto =
+                    _mapper.Map<Productos>(dto);
+
+                producto.activo = true;
+                producto.fecha_alta = DateTime.Now;
+
+                int resultado =
+                    await _servicio.CrearAsync(producto);
+
+                if (resultado <= 0)
+                {
+                    return BadRequest(
+                        "No se pudo crear el producto."
+                    );
+                }
+
+                return Ok(
+                    "Producto creado correctamente."
+                );
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPut("{id}")]
@@ -97,40 +122,49 @@ namespace impresion3d.Api.Controllers
             int id,
             ActualizarProductoDto dto)
         {
-            var productoExistente =
-                await _servicio.ObtenerPorIdAsync(id);
-
-            if (productoExistente == null)
+            try
             {
-                return NotFound(
-                    "Producto no encontrado."
+                var productoExistente =
+                    await _servicio.ObtenerPorIdAsync(id);
+
+                if (productoExistente == null)
+                {
+                    return NotFound(
+                        "Producto no encontrado."
+                    );
+                }
+
+                var producto =
+                    _mapper.Map<Productos>(dto);
+
+                producto.IdProducto = id;
+
+                if (producto.fecha_alta == default)
+                {
+                    producto.fecha_alta = productoExistente.fecha_alta;
+                }
+
+                bool resultado =
+                    await _servicio.ActualizarAsync(producto);
+
+                if (!resultado)
+                {
+                    return BadRequest(
+                        "No se pudo actualizar el producto."
+                    );
+                }
+
+                return Ok(
+                    "Producto actualizado correctamente."
                 );
             }
-
-            var producto = new Productos
+            catch (ArgumentException ex)
             {
-                IdProducto = id,
-                id_modelo3d = dto.id_modelo3d,
-                nombre = dto.nombre,
-                descripcion = dto.descripcion,
-                precio_venta = dto.precio_venta,
-                activo = dto.activo,
-                fecha_alta = dto.fecha_alta
-            };
-
-            bool resultado =
-                await _servicio.ActualizarAsync(producto);
-
-            if (!resultado)
-            {
-                return BadRequest(
-                    "No se pudo actualizar el producto."
-                );
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
             }
-
-            return Ok(
-                "Producto actualizado correctamente."
-            );
         }
 
         [HttpPatch("{id}/estado")]
@@ -138,22 +172,32 @@ namespace impresion3d.Api.Controllers
             int id,
             bool activo)
         {
-            bool resultado =
-                await _servicio.CambiarEstadoAsync(
-                    id,
-                    activo
-                );
-
-            if (!resultado)
+            try
             {
-                return BadRequest(
-                    "No se pudo cambiar el estado del producto."
+                bool resultado =
+                    await _servicio.CambiarEstadoAsync(
+                        id,
+                        activo
+                    );
+
+                if (!resultado)
+                {
+                    return BadRequest(
+                        "No se pudo cambiar el estado del producto."
+                    );
+                }
+
+                return Ok(
+                    "Estado del producto actualizado correctamente."
                 );
             }
-
-            return Ok(
-                "Estado del producto actualizado correctamente."
-            );
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
     }
 }

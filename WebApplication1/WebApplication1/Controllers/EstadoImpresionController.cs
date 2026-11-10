@@ -1,3 +1,5 @@
+using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
@@ -10,66 +12,131 @@ namespace impresion3d.Api.Controllers
     public class EstadoImpresionController : ControllerBase
     {
         private readonly ServicioEstadoImpresion _servicio;
+        private readonly IValidator<EstadoImpresionCrearDto> _validatorCrear;
+        private readonly IMapper _mapper;
 
-        public EstadoImpresionController(ServicioEstadoImpresion servicio)
+        public EstadoImpresionController(
+            ServicioEstadoImpresion servicio,
+            IValidator<EstadoImpresionCrearDto> validatorCrear,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorCrear = validatorCrear;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var estados = await _servicio.ObtenerTodosAsync();
-            var dtos = estados.Select(e => new EstadoImpresionDto
-            {
-                id_estado_impresion = e.id_estado_impresion,
-                nombre = e.nombre
-            });
+
+            var dtos =
+                _mapper.Map<List<EstadoImpresionDto>>(estados);
+
             return Ok(dtos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var e = await _servicio.ObtenerPorIdAsync(id);
-            var dto = new EstadoImpresionDto
+            try
             {
-                id_estado_impresion = e.id_estado_impresion,
-                nombre = e.nombre
-            };
-            return Ok(dto);
+                var e = await _servicio.ObtenerPorIdAsync(id);
+
+                var dto =
+                    _mapper.Map<EstadoImpresionDto>(e);
+
+                return Ok(dto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] EstadoImpresionCrearDto dto)
         {
-            var entidad = new EstadoImpresion
-            {
-                nombre = dto.nombre
-            };
+            var validationResultado =
+                await _validatorCrear.ValidateAsync(dto);
 
-            var id = await _servicio.CrearAsync(entidad);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            if (!validationResultado.IsValid)
+            {
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
+            }
+
+            try
+            {
+                var entidad =
+                    _mapper.Map<EstadoImpresion>(dto);
+
+                var id = await _servicio.CrearAsync(entidad);
+                return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] EstadoImpresionActualizarDto dto)
         {
-            var entidad = new EstadoImpresion
+            try
             {
-                id_estado_impresion = id,
-                nombre = dto.nombre
-            };
+                var entidad =
+                    _mapper.Map<EstadoImpresion>(dto);
 
-            await _servicio.ActualizarAsync(entidad);
-            return NoContent();
+                entidad.id_estado_impresion = id;
+
+                await _servicio.ActualizarAsync(entidad);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _servicio.EliminarAsync(id);
-            return NoContent();
+            try
+            {
+                await _servicio.EliminarAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
     }
 }

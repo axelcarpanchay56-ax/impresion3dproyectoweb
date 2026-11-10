@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Threading.Tasks;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Interfaces;
 using impresion3d.Infrastructure.Contexto;
 using MySqlConnector;
+using Dapper;
 
 namespace impresion3d.Infrastructure.Repositorios
 {
@@ -16,140 +14,122 @@ namespace impresion3d.Infrastructure.Repositorios
         public PedidosRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
+
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         public async Task<List<Pedidos>> ObtenerTodosAsync()
         {
-            var lista = new List<Pedidos>();
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_pedidos_obtener_todos";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    lista.Add(new Pedidos
-                    {
-                        id_pedido = reader.GetInt32("id_pedido"),
-                        id_cliente = reader.GetInt32("id_cliente"),
-                        fecha_hora = reader.GetDateTime("fecha_hora"),
-                        fecha_entrega_estimada = reader.IsDBNull(reader.GetOrdinal("fecha_entrega_estimada")) ? null : reader.GetDateTime("fecha_entrega_estimada"),
-                        fecha_entrega_real = reader.IsDBNull(reader.GetOrdinal("fecha_entrega_real")) ? null : reader.GetDateTime("fecha_entrega_real"),
-                        id_estado = reader.GetInt32("id_estado"),
-                        total_estimado = reader.GetDecimal("total_estimado"),
-                        subtotal = reader.GetDecimal("subtotal"),
-                        descuento = reader.GetDecimal("descuento"),
-                        total = reader.GetDecimal("total")
-                    });
-                }
+                var lista =
+                    await conexion.QueryAsync<Pedidos>(
+                        "sp_pedidos_obtener_todos",
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return lista.ToList();
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-            return lista;
         }
 
         public async Task<Pedidos?> ObtenerPorIdAsync(int id)
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_pedidos_obtener_por_id";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", id);
+                var parametros = new DynamicParameters();
 
-                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    return new Pedidos
-                    {
-                        id_pedido = reader.GetInt32("id_pedido"),
-                        id_cliente = reader.GetInt32("id_cliente"),
-                        fecha_hora = reader.GetDateTime("fecha_hora"),
-                        fecha_entrega_estimada = reader.IsDBNull(reader.GetOrdinal("fecha_entrega_estimada")) ? null : reader.GetDateTime("fecha_entrega_estimada"),
-                        fecha_entrega_real = reader.IsDBNull(reader.GetOrdinal("fecha_entrega_real")) ? null : reader.GetDateTime("fecha_entrega_real"),
-                        id_estado = reader.GetInt32("id_estado"),
-                        total_estimado = reader.GetDecimal("total_estimado"),
-                        subtotal = reader.GetDecimal("subtotal"),
-                        descuento = reader.GetDecimal("descuento"),
-                        total = reader.GetDecimal("total")
-                    };
-                }
+                parametros.Add(
+                    "p_id",
+                    id,
+                    DbType.Int32,
+                    ParameterDirection.Input
+                );
+
+                return await conexion.QueryFirstOrDefaultAsync<Pedidos>(
+                    "sp_pedidos_obtener_por_id",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-            return null;
         }
 
         public async Task<List<Pedidos>> ObtenerPorClienteAsync(int id_cliente)
         {
-            var lista = new List<Pedidos>();
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_pedidos_obtener_por_cliente";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id_cliente", id_cliente);
+                var parametros = new DynamicParameters();
 
-                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    lista.Add(new Pedidos
-                    {
-                        id_pedido = reader.GetInt32("id_pedido"),
-                        id_cliente = reader.GetInt32("id_cliente"),
-                        fecha_hora = reader.GetDateTime("fecha_hora"),
-                        fecha_entrega_estimada = reader.IsDBNull(reader.GetOrdinal("fecha_entrega_estimada")) ? null : reader.GetDateTime("fecha_entrega_estimada"),
-                        fecha_entrega_real = reader.IsDBNull(reader.GetOrdinal("fecha_entrega_real")) ? null : reader.GetDateTime("fecha_entrega_real"),
-                        id_estado = reader.GetInt32("id_estado"),
-                        total_estimado = reader.GetDecimal("total_estimado"),
-                        subtotal = reader.GetDecimal("subtotal"),
-                        descuento = reader.GetDecimal("descuento"),
-                        total = reader.GetDecimal("total")
-                    });
-                }
+                parametros.Add(
+                    "p_id_cliente",
+                    id_cliente,
+                    DbType.Int32,
+                    ParameterDirection.Input
+                );
+
+                var lista =
+                    await conexion.QueryAsync<Pedidos>(
+                        "sp_pedidos_obtener_por_cliente",
+                        parametros,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return lista.ToList();
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-            return lista;
         }
 
         public async Task<int> CrearAsync(Pedidos entidad)
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_pedidos_crear";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id_cliente", entidad.id_cliente);
-                AddParam(cmd, "p_fecha_hora", entidad.fecha_hora == default ? DateTime.Now : entidad.fecha_hora);
-                AddParam(cmd, "p_fecha_entrega_estimada", entidad.fecha_entrega_estimada);
-                AddParam(cmd, "p_fecha_entrega_real", entidad.fecha_entrega_real);
-                AddParam(cmd, "p_id_estado", entidad.id_estado);
-                AddParam(cmd, "p_total_estimado", entidad.total_estimado);
-                AddParam(cmd, "p_subtotal", entidad.subtotal);
-                AddParam(cmd, "p_descuento", entidad.descuento);
-                AddParam(cmd, "p_total", entidad.total);
+                var parametros = new DynamicParameters();
 
-                var res = await (cmd as MySqlCommand)!.ExecuteScalarAsync();
-                return Convert.ToInt32(res);
+                parametros.Add("p_id_cliente", entidad.id_cliente);
+                parametros.Add(
+                    "p_fecha_hora",
+                    entidad.fecha_hora == default
+                        ? DateTime.Now
+                        : entidad.fecha_hora
+                );
+                parametros.Add("p_fecha_entrega_estimada", entidad.fecha_entrega_estimada);
+                parametros.Add("p_fecha_entrega_real", entidad.fecha_entrega_real);
+                parametros.Add("p_id_estado", entidad.id_estado);
+                parametros.Add("p_total_estimado", entidad.total_estimado);
+                parametros.Add("p_subtotal", entidad.subtotal);
+                parametros.Add("p_descuento", entidad.descuento);
+                parametros.Add("p_total", entidad.total);
+
+                return await conexion.ExecuteScalarAsync<int>(
+                    "sp_pedidos_crear",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
             }
             catch (MySqlException ex)
             {
@@ -162,24 +142,30 @@ namespace impresion3d.Infrastructure.Repositorios
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_pedidos_actualizar";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", entidad.id_pedido);
-                AddParam(cmd, "p_id_cliente", entidad.id_cliente);
-                AddParam(cmd, "p_fecha_hora", entidad.fecha_hora);
-                AddParam(cmd, "p_fecha_entrega_estimada", entidad.fecha_entrega_estimada);
-                AddParam(cmd, "p_fecha_entrega_real", entidad.fecha_entrega_real);
-                AddParam(cmd, "p_id_estado", entidad.id_estado);
-                AddParam(cmd, "p_total_estimado", entidad.total_estimado);
-                AddParam(cmd, "p_subtotal", entidad.subtotal);
-                AddParam(cmd, "p_descuento", entidad.descuento);
-                AddParam(cmd, "p_total", entidad.total);
+                var parametros = new DynamicParameters();
 
-                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
-                return rows > 0;
+                parametros.Add("p_id", entidad.id_pedido);
+                parametros.Add("p_id_cliente", entidad.id_cliente);
+                parametros.Add("p_fecha_hora", entidad.fecha_hora);
+                parametros.Add("p_fecha_entrega_estimada", entidad.fecha_entrega_estimada);
+                parametros.Add("p_fecha_entrega_real", entidad.fecha_entrega_real);
+                parametros.Add("p_id_estado", entidad.id_estado);
+                parametros.Add("p_total_estimado", entidad.total_estimado);
+                parametros.Add("p_subtotal", entidad.subtotal);
+                parametros.Add("p_descuento", entidad.descuento);
+                parametros.Add("p_total", entidad.total);
+
+                int filasAfectadas =
+                    await conexion.ExecuteAsync(
+                        "sp_pedidos_actualizar",
+                        parametros,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return filasAfectadas > 0;
             }
             catch (MySqlException ex)
             {
@@ -192,29 +178,32 @@ namespace impresion3d.Infrastructure.Repositorios
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_pedidos_eliminar";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", id);
+                var parametros = new DynamicParameters();
 
-                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
-                return rows > 0;
+                parametros.Add(
+                    "p_id",
+                    id,
+                    DbType.Int32,
+                    ParameterDirection.Input
+                );
+
+                int filasAfectadas =
+                    await conexion.ExecuteAsync(
+                        "sp_pedidos_eliminar",
+                        parametros,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return filasAfectadas > 0;
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-        }
-
-        private static void AddParam(IDbCommand cmd, string name, object? value)
-        {
-            var p = cmd.CreateParameter();
-            p.ParameterName = name;
-            p.Value = value ?? DBNull.Value;
-            cmd.Parameters.Add(p);
         }
     }
 }

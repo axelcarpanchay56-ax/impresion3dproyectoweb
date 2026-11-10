@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Threading.Tasks;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Interfaces;
 using impresion3d.Infrastructure.Contexto;
 using MySqlConnector;
+using Dapper;
 
 namespace impresion3d.Infrastructure.Repositorios
 {
@@ -16,78 +14,77 @@ namespace impresion3d.Infrastructure.Repositorios
         public EstadoPedidoRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
+
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         public async Task<List<EstadoPedido>> ObtenerTodosAsync()
         {
-            var lista = new List<EstadoPedido>();
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_estado_pedido_obtener_todos";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    lista.Add(new EstadoPedido
-                    {
-                        id_estado_pedido = reader.GetInt32("id_estado_pedido"),
-                        nombre = reader.GetString("nombre")
-                    });
-                }
+                var lista =
+                    await conexion.QueryAsync<EstadoPedido>(
+                        "sp_estado_pedido_obtener_todos",
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return lista.ToList();
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-            return lista;
         }
 
         public async Task<EstadoPedido?> ObtenerPorIdAsync(int id)
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_estado_pedido_obtener_por_id";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", id);
+                var parametros = new DynamicParameters();
 
-                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    return new EstadoPedido
-                    {
-                        id_estado_pedido = reader.GetInt32("id_estado_pedido"),
-                        nombre = reader.GetString("nombre")
-                    };
-                }
+                parametros.Add(
+                    "p_id",
+                    id,
+                    DbType.Int32,
+                    ParameterDirection.Input
+                );
+
+                return await conexion.QueryFirstOrDefaultAsync<EstadoPedido>(
+                    "sp_estado_pedido_obtener_por_id",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-            return null;
         }
 
         public async Task<int> CrearAsync(EstadoPedido entidad)
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_estado_pedido_crear";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_nombre", entidad.nombre);
+                var parametros = new DynamicParameters();
 
-                var res = await (cmd as MySqlCommand)!.ExecuteScalarAsync();
-                return Convert.ToInt32(res);
+                parametros.Add("p_nombre", entidad.nombre);
+
+                return await conexion.ExecuteScalarAsync<int>(
+                    "sp_estado_pedido_crear",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
             }
             catch (MySqlException ex)
             {
@@ -100,16 +97,22 @@ namespace impresion3d.Infrastructure.Repositorios
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_estado_pedido_actualizar";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", entidad.id_estado_pedido);
-                AddParam(cmd, "p_nombre", entidad.nombre);
+                var parametros = new DynamicParameters();
 
-                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
-                return rows > 0;
+                parametros.Add("p_id", entidad.id_estado_pedido);
+                parametros.Add("p_nombre", entidad.nombre);
+
+                int filasAfectadas =
+                    await conexion.ExecuteAsync(
+                        "sp_estado_pedido_actualizar",
+                        parametros,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return filasAfectadas > 0;
             }
             catch (MySqlException ex)
             {
@@ -122,29 +125,32 @@ namespace impresion3d.Infrastructure.Repositorios
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_estado_pedido_eliminar";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", id);
+                var parametros = new DynamicParameters();
 
-                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
-                return rows > 0;
+                parametros.Add(
+                    "p_id",
+                    id,
+                    DbType.Int32,
+                    ParameterDirection.Input
+                );
+
+                int filasAfectadas =
+                    await conexion.ExecuteAsync(
+                        "sp_estado_pedido_eliminar",
+                        parametros,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return filasAfectadas > 0;
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-        }
-
-        private static void AddParam(IDbCommand cmd, string name, object? value)
-        {
-            var p = cmd.CreateParameter();
-            p.ParameterName = name;
-            p.Value = value ?? DBNull.Value;
-            cmd.Parameters.Add(p);
         }
     }
 }

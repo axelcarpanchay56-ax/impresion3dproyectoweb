@@ -1,7 +1,7 @@
-﻿using System.Data;
-using MySqlConnector;
-using impresion3d.Core.Entidades;
+﻿using impresion3d.Core.Entidades;
 using impresion3d.Core.Interfaces;
+using System.Data;
+using Dapper;
 
 namespace impresion3d.Infrastructure.Repositorios
 {
@@ -12,232 +12,127 @@ namespace impresion3d.Infrastructure.Repositorios
         public ProductoRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
+
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         public async Task<List<Productos>> ObtenerTodosAsync()
         {
-            var productos = new List<Productos>();
-
             using var conexion =
-                (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_productos_obtener_todos",
-                conexion
-            );
+            var productos =
+                await conexion.QueryAsync<Productos>(
+                    "sp_productos_obtener_todos",
+                    commandType: CommandType.StoredProcedure
+                );
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            using var reader = await comando.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                var producto = new Productos
-                {
-                    IdProducto = Convert.ToInt32(reader["id_producto"]),
-
-                    id_modelo3d = reader["id_modelo3d"] == DBNull.Value
-                        ? 0
-                        : Convert.ToInt32(reader["id_modelo3d"]),
-
-                    nombre = reader["nombre"].ToString(),
-
-                    descripcion = reader["descripcion"] == DBNull.Value
-                        ? null
-                        : reader["descripcion"].ToString(),
-
-                    precio_venta = Convert.ToDecimal(reader["precio_venta"]),
-
-                    activo = Convert.ToBoolean(reader["activo"]),
-
-                    fecha_alta = Convert.ToDateTime(reader["fecha_alta"])
-                };
-
-                productos.Add(producto);
-            }
-
-            return productos; 
+            return productos.ToList();
         }
 
         public async Task<Productos?> ObtenerPorIdAsync(int id)
         {
             using var conexion =
-       (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_productos_obtener_por_id",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_id_producto",
-                id
+                id,
+                DbType.Int32,
+                ParameterDirection.Input
             );
 
-            using var reader = await comando.ExecuteReaderAsync();
+            var producto =
+                await conexion.QueryFirstOrDefaultAsync<Productos>(
+                    "sp_productos_obtener_por_id",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            if (await reader.ReadAsync())
-            {
-                var producto = new Productos
-                {
-                    IdProducto = Convert.ToInt32(reader["id_producto"]),
-
-                    id_modelo3d = reader["id_modelo3d"] == DBNull.Value
-                        ? 0
-                        : Convert.ToInt32(reader["id_modelo3d"]),
-
-                    nombre = reader["nombre"].ToString(),
-
-                    descripcion = reader["descripcion"] == DBNull.Value
-                        ? null
-                        : reader["descripcion"].ToString(),
-
-                    precio_venta = Convert.ToDecimal(reader["precio_venta"]),
-
-                    activo = Convert.ToBoolean(reader["activo"]),
-
-                    fecha_alta = Convert.ToDateTime(reader["fecha_alta"])
-                };
-
-                return producto;
-            }
-
-            return null; 
+            return producto;
         }
 
         public async Task<int> CrearAsync(Productos producto)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_productos_crear",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_id_modelo3d",
                 producto.id_modelo3d == 0
-                    ? DBNull.Value
-                    : producto.id_modelo3d
+                    ? null
+                    : producto.id_modelo3d,
+                DbType.Int32
             );
-
-            comando.Parameters.AddWithValue(
-                "p_nombre",
-                producto.nombre
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_descripcion",
-                producto.descripcion
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_precio_venta",
-                producto.precio_venta
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_activo",
-                producto.activo
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_fecha_alta",
-                producto.fecha_alta
-            );
+            parametros.Add("p_nombre", producto.nombre);
+            parametros.Add("p_descripcion", producto.descripcion);
+            parametros.Add("p_precio_venta", producto.precio_venta);
+            parametros.Add("p_activo", producto.activo);
+            parametros.Add("p_fecha_alta", producto.fecha_alta);
 
             int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
+                await conexion.ExecuteAsync(
+                    "sp_productos_crear",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return filasAfectadas; 
+            return filasAfectadas;
         }
 
         public async Task<bool> ActualizarAsync(Productos producto)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_productos_actualizar",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_id_producto",
-                producto.IdProducto
-            );
-
-            comando.Parameters.AddWithValue(
+            parametros.Add("p_id_producto", producto.IdProducto);
+            parametros.Add(
                 "p_id_modelo3d",
                 producto.id_modelo3d == 0
-                    ? DBNull.Value
-                    : producto.id_modelo3d
+                    ? null
+                    : producto.id_modelo3d,
+                DbType.Int32
             );
-
-            comando.Parameters.AddWithValue(
-                "p_nombre",
-                producto.nombre
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_descripcion",
-                producto.descripcion
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_precio_venta",
-                producto.precio_venta
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_activo",
-                producto.activo
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_fecha_alta",
-                producto.fecha_alta
-            );
+            parametros.Add("p_nombre", producto.nombre);
+            parametros.Add("p_descripcion", producto.descripcion);
+            parametros.Add("p_precio_venta", producto.precio_venta);
+            parametros.Add("p_activo", producto.activo);
+            parametros.Add("p_fecha_alta", producto.fecha_alta);
 
             int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
+                await conexion.ExecuteAsync(
+                    "sp_productos_actualizar",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return filasAfectadas > 0; 
+            return filasAfectadas > 0;
         }
 
         public async Task<bool> CambiarEstadoAsync(int id, bool activo)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_productos_cambiar_estado",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_id_producto",
-                id
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_activo",
-                activo
-            );
+            parametros.Add("p_id_producto", id);
+            parametros.Add("p_activo", activo);
 
             int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
+                await conexion.ExecuteAsync(
+                    "sp_productos_cambiar_estado",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return filasAfectadas > 0; 
+            return filasAfectadas > 0;
         }
     }
-} 
+}

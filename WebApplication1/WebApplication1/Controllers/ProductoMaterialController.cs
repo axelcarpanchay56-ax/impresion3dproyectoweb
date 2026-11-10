@@ -1,4 +1,6 @@
-﻿using impresion3d.Api.DTOs;
+﻿using AutoMapper;
+using FluentValidation;
+using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Servicios;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +12,17 @@ namespace impresion3d.Api.Controllers
     public class ProductoMaterialController : ControllerBase
     {
         private readonly ServicioProductoMaterial _servicio;
+        private readonly IValidator<AsignarProductoMaterialDto> _validatorAsignar;
+        private readonly IMapper _mapper;
 
         public ProductoMaterialController(
-            ServicioProductoMaterial servicio)
+            ServicioProductoMaterial servicio,
+            IValidator<AsignarProductoMaterialDto> validatorAsignar,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorAsignar = validatorAsignar;
+            _mapper = mapper;
         }
 
         [HttpGet("producto/{idProducto}")]
@@ -24,12 +32,8 @@ namespace impresion3d.Api.Controllers
             var lista =
                 await _servicio.ObtenerPorProductoAsync(idProducto);
 
-            var resultado = lista.Select(pm => new ProductoMaterialDto
-            {
-                IdProducto = pm.IdProducto,
-                IdMaterial = pm.IdMaterial,
-                cantidad_estimada = pm.cantidad_estimada
-            }).ToList();
+            var resultado =
+                _mapper.Map<List<ProductoMaterialDto>>(lista);
 
             return Ok(resultado);
         }
@@ -38,12 +42,24 @@ namespace impresion3d.Api.Controllers
         public async Task<ActionResult> Asignar(
             AsignarProductoMaterialDto dto)
         {
-            var productoMaterial = new ProductoMaterial
+            var validationResultado =
+                await _validatorAsignar.ValidateAsync(dto);
+
+            if (!validationResultado.IsValid)
             {
-                IdProducto = dto.IdProducto,
-                IdMaterial = dto.IdMaterial,
-                cantidad_estimada = dto.cantidad_estimada
-            };
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
+            }
+
+            var productoMaterial =
+                _mapper.Map<ProductoMaterial>(dto);
 
             int resultado =
                 await _servicio.AsignarAsync(productoMaterial);
@@ -60,12 +76,11 @@ namespace impresion3d.Api.Controllers
             int idMaterial,
             ActualizarProductoMaterialDto dto)
         {
-            var productoMaterial = new ProductoMaterial
-            {
-                IdProducto = idProducto,
-                IdMaterial = idMaterial,
-                cantidad_estimada = dto.cantidad_estimada
-            };
+            var productoMaterial =
+                _mapper.Map<ProductoMaterial>(dto);
+
+            productoMaterial.IdProducto = idProducto;
+            productoMaterial.IdMaterial = idMaterial;
 
             bool resultado =
                 await _servicio.ActualizarAsync(productoMaterial);
@@ -93,4 +108,4 @@ namespace impresion3d.Api.Controllers
             return NotFound();
         }
     }
-} 
+}

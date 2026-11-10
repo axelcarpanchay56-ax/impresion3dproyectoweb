@@ -1,3 +1,5 @@
+using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
@@ -10,81 +12,133 @@ namespace impresion3d.Api.Controllers
     public class Modelo3DController : ControllerBase
     {
         private readonly ServicioModelo3D _servicio;
+        private readonly IValidator<Modelo3DCrearDto> _validatorCrear;
+        private readonly IMapper _mapper;
 
-        public Modelo3DController(ServicioModelo3D servicio)
+        public Modelo3DController(
+            ServicioModelo3D servicio,
+            IValidator<Modelo3DCrearDto> validatorCrear,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorCrear = validatorCrear;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var modelos = await _servicio.ObtenerTodosAsync();
-            var dtos = modelos.Select(m => new Modelo3DDto
-            {
-                id_modelo3d = m.id_modelo3d,
-                nombre = m.nombre,
-                archivo = m.archivo,
-                formato = m.formato,
-                descripcion = m.descripcion,
-                fecha_creacion = m.fecha_creacion
-            });
+
+            var dtos =
+                _mapper.Map<List<Modelo3DDto>>(modelos);
+
             return Ok(dtos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var m = await _servicio.ObtenerPorIdAsync(id);
-            var dto = new Modelo3DDto
+            try
             {
-                id_modelo3d = m.id_modelo3d,
-                nombre = m.nombre,
-                archivo = m.archivo,
-                formato = m.formato,
-                descripcion = m.descripcion,
-                fecha_creacion = m.fecha_creacion
-            };
-            return Ok(dto);
+                var m = await _servicio.ObtenerPorIdAsync(id);
+
+                var dto =
+                    _mapper.Map<Modelo3DDto>(m);
+
+                return Ok(dto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Modelo3DCrearDto dto)
         {
-            var entidad = new Modelo3D
-            {
-                nombre = dto.nombre,
-                archivo = dto.archivo,
-                formato = dto.formato,
-                descripcion = dto.descripcion,
-                fecha_creacion = DateTime.Now
-            };
+            var validationResultado =
+                await _validatorCrear.ValidateAsync(dto);
 
-            var id = await _servicio.CrearAsync(entidad);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            if (!validationResultado.IsValid)
+            {
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
+            }
+
+            try
+            {
+                var entidad =
+                    _mapper.Map<Modelo3D>(dto);
+
+                entidad.fecha_creacion = DateTime.Now;
+
+                var id = await _servicio.CrearAsync(entidad);
+                return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] Modelo3DActualizacionDto dto)
         {
-            var entidad = new Modelo3D
+            try
             {
-                id_modelo3d = id,
-                nombre = dto.nombre,
-                archivo = dto.archivo,
-                formato = dto.formato,
-                descripcion = dto.descripcion
-            };
+                var entidad =
+                    _mapper.Map<Modelo3D>(dto);
 
-            await _servicio.ActualizarAsync(entidad);
-            return NoContent();
+                entidad.id_modelo3d = id;
+
+                await _servicio.ActualizarAsync(entidad);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _servicio.EliminarAsync(id);
-            return NoContent();
+            try
+            {
+                await _servicio.EliminarAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
     }
 }

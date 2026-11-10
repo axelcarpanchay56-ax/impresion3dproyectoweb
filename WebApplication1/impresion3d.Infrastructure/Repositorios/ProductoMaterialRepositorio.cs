@@ -1,7 +1,7 @@
-﻿using System.Data;
-using MySqlConnector;
-using impresion3d.Core.Entidades;
+﻿using impresion3d.Core.Entidades;
 using impresion3d.Core.Interfaces;
+using System.Data;
+using Dapper;
 
 namespace impresion3d.Infrastructure.Repositorios
 {
@@ -12,111 +12,77 @@ namespace impresion3d.Infrastructure.Repositorios
         public ProductoMaterialRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
+
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         public async Task<List<ProductoMaterial>> ObtenerPorProductoAsync(
             int idProducto)
         {
-            var lista = new List<ProductoMaterial>();
-
             using var conexion =
-                (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_producto_material_obtener_por_producto",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_id_producto",
-                idProducto
+                idProducto,
+                DbType.Int32,
+                ParameterDirection.Input
             );
 
-            using var reader = await comando.ExecuteReaderAsync();
+            var lista =
+                await conexion.QueryAsync<ProductoMaterial>(
+                    "sp_producto_material_obtener_por_producto",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            while (await reader.ReadAsync())
-            {
-                var productoMaterial = new ProductoMaterial
-                {
-                    IdProducto = Convert.ToInt32(reader["id_producto"]),
-                    IdMaterial = Convert.ToInt32(reader["id_material"]),
-                    cantidad_estimada = Convert.ToInt32(reader["cantidad_estimada"])
-                };
-
-                lista.Add(productoMaterial);
-            }
-
-            return lista; 
+            return lista.ToList();
         }
 
         public async Task<int> AsignarAsync(
             ProductoMaterial productoMaterial)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_producto_material_asignar",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_id_producto",
-                productoMaterial.IdProducto
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_id_material",
-                productoMaterial.IdMaterial
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_cantidad_estimada",
-                productoMaterial.cantidad_estimada
-            );
+            parametros.Add("p_id_producto", productoMaterial.IdProducto);
+            parametros.Add("p_id_material", productoMaterial.IdMaterial);
+            parametros.Add("p_cantidad_estimada", productoMaterial.cantidad_estimada);
 
             int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
+                await conexion.ExecuteAsync(
+                    "sp_producto_material_asignar",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return filasAfectadas; 
+            return filasAfectadas;
         }
 
         public async Task<bool> ActualizarAsync(
             ProductoMaterial productoMaterial)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_producto_material_actualizar",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_id_producto",
-                productoMaterial.IdProducto
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_id_material",
-                productoMaterial.IdMaterial
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_cantidad_estimada",
-                productoMaterial.cantidad_estimada
-            );
+            parametros.Add("p_id_producto", productoMaterial.IdProducto);
+            parametros.Add("p_id_material", productoMaterial.IdMaterial);
+            parametros.Add("p_cantidad_estimada", productoMaterial.cantidad_estimada);
 
             int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
+                await conexion.ExecuteAsync(
+                    "sp_producto_material_actualizar",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return filasAfectadas > 0; 
+            return filasAfectadas > 0;
         }
 
         public async Task<bool> EliminarAsync(
@@ -124,29 +90,21 @@ namespace impresion3d.Infrastructure.Repositorios
             int idMaterial)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_producto_material_eliminar",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_id_producto",
-                idProducto
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_id_material",
-                idMaterial
-            );
+            parametros.Add("p_id_producto", idProducto);
+            parametros.Add("p_id_material", idMaterial);
 
             int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
+                await conexion.ExecuteAsync(
+                    "sp_producto_material_eliminar",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return filasAfectadas > 0; 
+            return filasAfectadas > 0;
         }
     }
-} 
+}

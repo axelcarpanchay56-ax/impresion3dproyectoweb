@@ -1,7 +1,7 @@
-﻿using MySqlConnector;
-using impresion3d.Core.Entidades;
+﻿using impresion3d.Core.Entidades;
 using impresion3d.Core.Interfaces;
 using System.Data;
+using Dapper;
 
 namespace impresion3d.Infrastructure.Repositorios
 {
@@ -12,58 +12,41 @@ namespace impresion3d.Infrastructure.Repositorios
         public ClienteRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
+
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         public async Task<List<Clientes>> ObtenerTodosAsync()
         {
-            var clientes = new List<Clientes>();
-
             using var conexion =
-                (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_clientes_obtener_todos",
-                conexion
-            );
+            var clientes =
+                await conexion.QueryAsync<Clientes>(
+                    "sp_clientes_obtener_todos",
+                    commandType: CommandType.StoredProcedure
+                );
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            using var reader = await comando.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                Clientes cliente = new Clientes
-                {
-                    IdCliente = Convert.ToInt32(reader["id_cliente"]),
-                    id_persona = Convert.ToInt32(reader["id_persona"])
-                };
-
-                clientes.Add(cliente);
-            }
-
-            return clientes;
+            return clientes.ToList();
         }
 
         public async Task<int> CrearAsync(Clientes cliente)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_clientes_crear",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
+            parametros.Add("p_id_persona", cliente.id_persona);
 
-            comando.Parameters.AddWithValue(
-                "p_id_persona",
-                cliente.id_persona
-            );
+            int filasAfectadas =
+                await conexion.ExecuteAsync(
+                    "sp_clientes_crear",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            int filasAfectadas = await comando.ExecuteNonQueryAsync();
-
-            return filasAfectadas; 
+            return filasAfectadas;
         }
     }
 }

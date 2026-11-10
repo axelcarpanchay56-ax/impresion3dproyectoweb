@@ -4,12 +4,12 @@
     {
         public int id_material { get; set; }
 
-        public string tipo_movimiento { get; set; }
+        public string tipo_movimiento { get; set; } = string.Empty;
 
         public decimal cantidad { get; set; }
 
         public DateTime fecha_hora { get; set; }
 
-        public string observacion { get; set; }
+        public string? observacion { get; set; }
     }
 } 

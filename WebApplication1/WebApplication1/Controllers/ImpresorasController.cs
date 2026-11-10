@@ -1,3 +1,5 @@
+using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
@@ -10,90 +12,136 @@ namespace impresion3d.Api.Controllers
     public class ImpresorasController : ControllerBase
     {
         private readonly ServicioImpresoras _servicio;
+        private readonly IValidator<ImpresoraCrearDto> _validatorCrear;
+        private readonly IMapper _mapper;
 
-        public ImpresorasController(ServicioImpresoras servicio)
+        public ImpresorasController(
+            ServicioImpresoras servicio,
+            IValidator<ImpresoraCrearDto> validatorCrear,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorCrear = validatorCrear;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var impresoras = await _servicio.ObtenerTodosAsync();
-            var dtos = impresoras.Select(m => new ImpresoraDto
-            {
-                id_impresora = m.id_impresora,
-                nombre = m.nombre,
-                marca = m.marca,
-                modelo = m.modelo,
-                volumen_x = m.volumen_x,
-                volumen_y = m.volumen_y,
-                volumen_z = m.volumen_z,
-                tecnologia = m.tecnologia,
-                estado = m.estado,
-                fecha_alta = m.fecha_alta
-            });
+
+            var dtos =
+                _mapper.Map<List<ImpresoraDto>>(impresoras);
+
             return Ok(dtos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var m = await _servicio.ObtenerPorIdAsync(id);
-            var dto = new ImpresoraDto
+            try
             {
-                id_impresora = m.id_impresora,
-                nombre = m.nombre,
-                marca = m.marca,
-                modelo = m.modelo,
-                volumen_x = m.volumen_x,
-                volumen_y = m.volumen_y,
-                volumen_z = m.volumen_z,
-                tecnologia = m.tecnologia,
-                estado = m.estado,
-                fecha_alta = m.fecha_alta
-            };
-            return Ok(dto);
+                var m = await _servicio.ObtenerPorIdAsync(id);
+
+                var dto =
+                    _mapper.Map<ImpresoraDto>(m);
+
+                return Ok(dto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ImpresoraCrearDto dto)
         {
-            var entidad = new Impresoras
-            {
-                nombre = dto.nombre,
-                marca = dto.marca,
-                modelo = dto.modelo,
-                volumen_x = dto.volumen_x,
-                volumen_y = dto.volumen_y,
-                volumen_z = dto.volumen_z,
-                tecnologia = dto.tecnologia,
-                estado = dto.estado,
-                fecha_alta = DateTime.Now
-            };
+            var validationResultado =
+                await _validatorCrear.ValidateAsync(dto);
 
-            var id = await _servicio.CrearAsync(entidad);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            if (!validationResultado.IsValid)
+            {
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
+            }
+
+            try
+            {
+                var entidad =
+                    _mapper.Map<Impresoras>(dto);
+
+                if (entidad.fecha_alta == default)
+                {
+                    entidad.fecha_alta = DateTime.Now;
+                }
+
+                var id = await _servicio.CrearAsync(entidad);
+                return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] ImpresoraActualizarDto dto)
         {
-            var entidad = new Impresoras
+            try
             {
-                id_impresora = id,
-                nombre = dto.nombre,
-                marca = dto.marca,
-                modelo = dto.modelo,
-                volumen_x = dto.volumen_x,
-                volumen_y = dto.volumen_y,
-                volumen_z = dto.volumen_z,
-                tecnologia = dto.tecnologia,
-                estado = dto.estado
-            };
+                var entidad =
+                    _mapper.Map<Impresoras>(dto);
 
-            await _servicio.ActualizarAsync(entidad);
-            return NoContent();
+                entidad.id_impresora = id;
+
+                await _servicio.ActualizarAsync(entidad);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+        }
+
+        [HttpPatch("{id}/estado")]
+        public async Task<IActionResult> CambiarEstado(int id, bool estado)
+        {
+            try
+            {
+                await _servicio.CambiarEstadoAsync(id, estado);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Servicios;
@@ -10,51 +12,88 @@ namespace impresion3d.Api.Controllers
     public class UsuarioRolController : ControllerBase
     {
         private readonly ServicioUsuarioRol _servicio;
+        private readonly IValidator<AsignarUsuarioRolDto> _validatorAsignar;
+        private readonly IMapper _mapper;
 
-        public UsuarioRolController(ServicioUsuarioRol servicio)
+        public UsuarioRolController(
+            ServicioUsuarioRol servicio,
+            IValidator<AsignarUsuarioRolDto> validatorAsignar,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorAsignar = validatorAsignar;
+            _mapper = mapper;
         }
 
         [HttpPost]
         public async Task<IActionResult> Asignar(
             AsignarUsuarioRolDto dto)
         {
-            var usuarioRol = new Usuario_Rol
-            {
-                id_usuario = dto.IdUsuario,
-                id_rol = dto.IdRol
-            };
+            var validationResultado =
+                await _validatorAsignar.ValidateAsync(dto);
 
-            int resultado =
-                await _servicio.AsignarAsync(usuarioRol);
-
-            if (resultado <= 0)
+            if (!validationResultado.IsValid)
             {
-                return BadRequest(
-                    "No se pudo asignar el rol al usuario."
-                );
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
             }
 
-            return Ok(
-                "Rol asignado correctamente."
-            );
+            try
+            {
+                var usuarioRol =
+                    _mapper.Map<Usuario_Rol>(dto);
+
+                int resultado =
+                    await _servicio.AsignarAsync(usuarioRol);
+
+                if (resultado <= 0)
+                {
+                    return BadRequest(
+                        "No se pudo asignar el rol al usuario."
+                    );
+                }
+
+                return Ok(
+                    "Rol asignado correctamente."
+                );
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpGet("usuario/{idUsuario}")]
         public async Task<IActionResult> ObtenerPorUsuario(
             int idUsuario)
         {
-            var roles =
-                await _servicio.ObtenerPorUsuarioAsync(idUsuario);
-
-            var rolesDto = roles.Select(rol => new UsuarioRolDto
+            try
             {
-                IdUsuario = rol.id_usuario,
-                IdRol = rol.id_rol
-            }).ToList();
+                var roles =
+                    await _servicio.ObtenerPorUsuarioAsync(idUsuario);
 
-            return Ok(rolesDto);
+                var rolesDto =
+                    _mapper.Map<List<UsuarioRolDto>>(roles);
+
+                return Ok(rolesDto);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
     }
-} 
+}
