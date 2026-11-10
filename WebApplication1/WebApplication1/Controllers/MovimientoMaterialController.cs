@@ -1,4 +1,6 @@
-﻿using impresion3d.Api.DTOs;
+﻿using AutoMapper;
+using FluentValidation;
+using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Servicios;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +12,17 @@ namespace impresion3d.Api.Controllers
     public class MovimientoMaterialController : ControllerBase
     {
         private readonly ServicioMovimientoMaterial _servicio;
+        private readonly IValidator<CrearMovimientoMaterialDto> _validatorCrear;
+        private readonly IMapper _mapper;
 
         public MovimientoMaterialController(
-            ServicioMovimientoMaterial servicio)
+            ServicioMovimientoMaterial servicio,
+            IValidator<CrearMovimientoMaterialDto> validatorCrear,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorCrear = validatorCrear;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -22,15 +30,8 @@ namespace impresion3d.Api.Controllers
         {
             var lista = await _servicio.ObtenerTodosAsync();
 
-            var resultado = lista.Select(m => new MovimientoMaterialDto
-            {
-                IdMovimientoMaterial = m.IdMovimientoMaterial,
-                id_material = m.id_material,
-                tipo_movimiento = m.tipo_movimiento,
-                cantidad = m.cantidad,
-                fecha_hora = m.fecha_hora,
-                observacion = m.observacion
-            }).ToList();
+            var resultado =
+                _mapper.Map<List<MovimientoMaterialDto>>(lista);
 
             return Ok(resultado);
         }
@@ -43,15 +44,8 @@ namespace impresion3d.Api.Controllers
             if (movimiento == null)
                 return NotFound();
 
-            var dto = new MovimientoMaterialDto
-            {
-                IdMovimientoMaterial = movimiento.IdMovimientoMaterial,
-                id_material = movimiento.id_material,
-                tipo_movimiento = movimiento.tipo_movimiento,
-                cantidad = movimiento.cantidad,
-                fecha_hora = movimiento.fecha_hora,
-                observacion = movimiento.observacion
-            };
+            var dto =
+                _mapper.Map<MovimientoMaterialDto>(movimiento);
 
             return Ok(dto);
         }
@@ -59,14 +53,29 @@ namespace impresion3d.Api.Controllers
         [HttpPost]
         public async Task<ActionResult> Crear(CrearMovimientoMaterialDto dto)
         {
-            var movimiento = new MovimientoMaterial
+            var validationResultado =
+                await _validatorCrear.ValidateAsync(dto);
+
+            if (!validationResultado.IsValid)
             {
-                id_material = dto.id_material,
-                tipo_movimiento = dto.tipo_movimiento,
-                cantidad = dto.cantidad,
-                fecha_hora = dto.fecha_hora,
-                observacion = dto.observacion
-            };
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
+            }
+
+            var movimiento =
+                _mapper.Map<MovimientoMaterial>(dto);
+
+            if (movimiento.fecha_hora == default)
+            {
+                movimiento.fecha_hora = DateTime.Now;
+            }
 
             int id = await _servicio.CrearAsync(movimiento);
 
@@ -78,15 +87,10 @@ namespace impresion3d.Api.Controllers
             int id,
             ActualizarMovimientoMaterialDto dto)
         {
-            var movimiento = new MovimientoMaterial
-            {
-                IdMovimientoMaterial = id,
-                id_material = dto.id_material,
-                tipo_movimiento = dto.tipo_movimiento,
-                cantidad = dto.cantidad,
-                fecha_hora = dto.fecha_hora,
-                observacion = dto.observacion
-            };
+            var movimiento =
+                _mapper.Map<MovimientoMaterial>(dto);
+
+            movimiento.IdMovimientoMaterial = id;
 
             bool resultado = await _servicio.ActualizarAsync(movimiento);
 
@@ -107,4 +111,4 @@ namespace impresion3d.Api.Controllers
             return NotFound();
         }
     }
-} 
+}

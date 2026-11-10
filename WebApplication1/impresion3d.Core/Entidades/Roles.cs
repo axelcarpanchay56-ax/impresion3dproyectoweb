@@ -10,9 +10,9 @@ namespace impresion3d.Core.Entidades
         public int IdRol { get; set; }
 
         [Column("nombre")]
-        public string nombre { get; set; }
+        public string nombre { get; set; } = string.Empty;
 
         [Column("descripcion")]
-        public string descripcion { get; set; }
+        public string? descripcion { get; set; }
     }
 } 

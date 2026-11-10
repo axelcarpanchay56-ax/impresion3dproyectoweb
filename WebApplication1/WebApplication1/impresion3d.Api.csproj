@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>7215d65b-6cb0-4e1e-8ad5-2d87b5b4cd79</UserSecretsId>
     <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
+    <NoWarn>$(NoWarn);NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

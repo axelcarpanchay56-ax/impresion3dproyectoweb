@@ -3,6 +3,7 @@ using impresion3d.Core.Entidades;
 using impresion3d.Core.Interfaces;
 using impresion3d.Infrastructure.Contexto;
 using MySqlConnector;
+using Dapper;
 
 namespace impresion3d.Infrastructure.Repositorios
 {
@@ -13,109 +14,91 @@ namespace impresion3d.Infrastructure.Repositorios
         public TrabajoImpresionRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
+
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         public async Task<List<TrabajoImpresion>> ObtenerTodosAsync()
         {
-            var lista = new List<TrabajoImpresion>();
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_trabajo_impresion_obtener_todos";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    lista.Add(new TrabajoImpresion
-                    {
-                        id_trabajo_impresion = reader.GetInt32("id_trabajo_impresion"),
-                        id_pedido = reader.GetInt32("id_pedido"),
-                        id_producto = reader.GetInt32("id_producto"),
-                        id_impresora = reader.GetInt32("id_impresora"),
-                        id_modelo = reader.GetInt32("id_modelo"),
-                        id_material = reader.GetInt32("id_material"),
-                        cantidad = reader.GetInt32("cantidad"),
-                        id_estado = reader.GetInt32("id_estado"),
-                        fecha_inicio = reader.IsDBNull(reader.GetOrdinal("fecha_inicio")) ? default : reader.GetDateTime("fecha_inicio"),
-                        fecha_fin = reader.IsDBNull(reader.GetOrdinal("fecha_fin")) ? default : reader.GetDateTime("fecha_fin"),
-                        tiempo_estimado = reader.IsDBNull(reader.GetOrdinal("tiempo_estimado")) ? default : reader.GetFieldValue<TimeSpan>(reader.GetOrdinal("tiempo_estimado")),
-                        peso_estimado = reader.IsDBNull(reader.GetOrdinal("peso_estimado")) ? 0 : reader.GetDecimal("peso_estimado"),
-                        observacion = reader.IsDBNull(reader.GetOrdinal("observacion")) ? string.Empty : reader.GetString("observacion")
-                    });
-                }
+                var lista =
+                    await conexion.QueryAsync<TrabajoImpresion>(
+                        "sp_trabajo_impresion_obtener_todos",
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return lista.ToList();
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-            return lista;
         }
 
         public async Task<TrabajoImpresion?> ObtenerPorIdAsync(int id)
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_trabajo_impresion_obtener_por_id";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", id);
+                var parametros = new DynamicParameters();
 
-                using var reader = await (cmd as MySqlCommand)!.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    return new TrabajoImpresion
-                    {
-                        id_trabajo_impresion = reader.GetInt32("id_trabajo_impresion"),
-                        id_pedido = reader.GetInt32("id_pedido"),
-                        id_producto = reader.GetInt32("id_producto"),
-                        id_impresora = reader.GetInt32("id_impresora"),
-                        id_modelo = reader.GetInt32("id_modelo"),
-                        id_material = reader.GetInt32("id_material"),
-                        cantidad = reader.GetInt32("cantidad"),
-                        id_estado = reader.GetInt32("id_estado"),
-                        fecha_inicio = reader.IsDBNull(reader.GetOrdinal("fecha_inicio")) ? default : reader.GetDateTime("fecha_inicio"),
-                        fecha_fin = reader.IsDBNull(reader.GetOrdinal("fecha_fin")) ? default : reader.GetDateTime("fecha_fin"),
-                        tiempo_estimado = reader.IsDBNull(reader.GetOrdinal("tiempo_estimado")) ? default : reader.GetFieldValue<TimeSpan>(reader.GetOrdinal("tiempo_estimado")),
-                        peso_estimado = reader.IsDBNull(reader.GetOrdinal("peso_estimado")) ? 0 : reader.GetDecimal("peso_estimado"),
-                        observacion = reader.IsDBNull(reader.GetOrdinal("observacion")) ? string.Empty : reader.GetString("observacion")
-                    };
-                }
+                parametros.Add(
+                    "p_id",
+                    id,
+                    DbType.Int32,
+                    ParameterDirection.Input
+                );
+
+                return await conexion.QueryFirstOrDefaultAsync<TrabajoImpresion>(
+                    "sp_trabajo_impresion_obtener_por_id",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-            return null;
         }
 
         public async Task<int> CrearAsync(TrabajoImpresion entidad)
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_trabajo_impresion_crear";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id_pedido", entidad.id_pedido);
-                AddParam(cmd, "p_id_producto", entidad.id_producto);
-                AddParam(cmd, "p_id_impresora", entidad.id_impresora);
-                AddParam(cmd, "p_id_modelo", entidad.id_modelo);
-                AddParam(cmd, "p_id_material", entidad.id_material);
-                AddParam(cmd, "p_cantidad", entidad.cantidad);
-                AddParam(cmd, "p_id_estado", entidad.id_estado);
-                AddParam(cmd, "p_fecha_inicio", entidad.fecha_inicio == default ? DateTime.Now : entidad.fecha_inicio);
-                AddParam(cmd, "p_peso_estimado", entidad.peso_estimado);
-                AddParam(cmd, "p_observacion", entidad.observacion);
+                var parametros = new DynamicParameters();
 
-                var res = await (cmd as MySqlCommand)!.ExecuteScalarAsync();
-                return Convert.ToInt32(res);
+                parametros.Add("p_id_pedido", entidad.id_pedido);
+                parametros.Add("p_id_producto", entidad.id_producto);
+                parametros.Add("p_id_impresora", entidad.id_impresora);
+                parametros.Add("p_id_modelo", entidad.id_modelo);
+                parametros.Add("p_id_material", entidad.id_material);
+                parametros.Add("p_cantidad", entidad.cantidad);
+                parametros.Add("p_id_estado", entidad.id_estado);
+                parametros.Add(
+                    "p_fecha_inicio",
+                    entidad.fecha_inicio == default
+                        ? DateTime.Now
+                        : entidad.fecha_inicio
+                );
+                parametros.Add("p_peso_estimado", entidad.peso_estimado);
+                parametros.Add("p_observacion", entidad.observacion);
+
+                return await conexion.ExecuteScalarAsync<int>(
+                    "sp_trabajo_impresion_crear",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
             }
             catch (MySqlException ex)
             {
@@ -128,26 +111,37 @@ namespace impresion3d.Infrastructure.Repositorios
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_trabajo_impresion_actualizar";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", entidad.id_trabajo_impresion);
-                AddParam(cmd, "p_id_pedido", entidad.id_pedido);
-                AddParam(cmd, "p_id_producto", entidad.id_producto);
-                AddParam(cmd, "p_id_impresora", entidad.id_impresora);
-                AddParam(cmd, "p_id_modelo", entidad.id_modelo);
-                AddParam(cmd, "p_id_material", entidad.id_material);
-                AddParam(cmd, "p_cantidad", entidad.cantidad);
-                AddParam(cmd, "p_id_estado", entidad.id_estado);
-                AddParam(cmd, "p_fecha_inicio", entidad.fecha_inicio);
-                AddParam(cmd, "p_fecha_fin", entidad.fecha_fin == default ? (object)DBNull.Value : entidad.fecha_fin);
-                AddParam(cmd, "p_peso_estimado", entidad.peso_estimado);
-                AddParam(cmd, "p_observacion", entidad.observacion);
+                var parametros = new DynamicParameters();
 
-                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
-                return rows > 0;
+                parametros.Add("p_id", entidad.id_trabajo_impresion);
+                parametros.Add("p_id_pedido", entidad.id_pedido);
+                parametros.Add("p_id_producto", entidad.id_producto);
+                parametros.Add("p_id_impresora", entidad.id_impresora);
+                parametros.Add("p_id_modelo", entidad.id_modelo);
+                parametros.Add("p_id_material", entidad.id_material);
+                parametros.Add("p_cantidad", entidad.cantidad);
+                parametros.Add("p_id_estado", entidad.id_estado);
+                parametros.Add("p_fecha_inicio", entidad.fecha_inicio);
+                parametros.Add(
+                    "p_fecha_fin",
+                    entidad.fecha_fin == default
+                        ? (DateTime?)null
+                        : entidad.fecha_fin
+                );
+                parametros.Add("p_peso_estimado", entidad.peso_estimado);
+                parametros.Add("p_observacion", entidad.observacion);
+
+                int filasAfectadas =
+                    await conexion.ExecuteAsync(
+                        "sp_trabajo_impresion_actualizar",
+                        parametros,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return filasAfectadas > 0;
             }
             catch (MySqlException ex)
             {
@@ -160,29 +154,32 @@ namespace impresion3d.Infrastructure.Repositorios
         {
             try
             {
-                using var conn = await _conexion.ObtenerConexionAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandText = "sp_trabajo_impresion_eliminar";
+                using var conexion =
+                    await _conexion.ObtenerConexionAsync();
 
-                AddParam(cmd, "p_id", id);
+                var parametros = new DynamicParameters();
 
-                int rows = await (cmd as MySqlCommand)!.ExecuteNonQueryAsync();
-                return rows > 0;
+                parametros.Add(
+                    "p_id",
+                    id,
+                    DbType.Int32,
+                    ParameterDirection.Input
+                );
+
+                int filasAfectadas =
+                    await conexion.ExecuteAsync(
+                        "sp_trabajo_impresion_eliminar",
+                        parametros,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                return filasAfectadas > 0;
             }
             catch (MySqlException ex)
             {
                 ArchivoLog.RegistrarErrores(ex);
                 throw;
             }
-        }
-
-        private static void AddParam(IDbCommand cmd, string name, object? value)
-        {
-            var p = cmd.CreateParameter();
-            p.ParameterName = name;
-            p.Value = value ?? DBNull.Value;
-            cmd.Parameters.Add(p);
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
 using impresion3d.Core.Servicios;
@@ -10,10 +12,17 @@ namespace impresion3d.Api.Controllers
     public class ClientesController : ControllerBase
     {
         private readonly ServicioCliente _servicio;
+        private readonly IValidator<CrearClienteDto> _validatorCrearCliente;
+        private readonly IMapper _mapper;
 
-        public ClientesController(ServicioCliente servicio)
+        public ClientesController(
+            ServicioCliente servicio,
+            IValidator<CrearClienteDto> validatorCrearCliente,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorCrearCliente = validatorCrearCliente;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -21,11 +30,8 @@ namespace impresion3d.Api.Controllers
         {
             var clientes = await _servicio.ObtenerTodosAsync();
 
-            var clientesDto = clientes.Select(cliente => new ClienteDto
-            {
-                IdCliente = cliente.IdCliente,
-                IdPersona = cliente.id_persona
-            }).ToList();
+            var clientesDto =
+                _mapper.Map<List<ClienteDto>>(clientes);
 
             return Ok(clientesDto);
         }
@@ -33,20 +39,48 @@ namespace impresion3d.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Crear(CrearClienteDto dto)
         {
-            var cliente = new Clientes
-            {
-                id_persona = dto.IdPersona
-            };
+            var validationResultado =
+                await _validatorCrearCliente.ValidateAsync(dto);
 
-            int resultado = await _servicio.CrearAsync(cliente);
-
-            if (resultado <= 0)
+            if (!validationResultado.IsValid)
             {
-                return BadRequest("No se pudo crear el cliente.");
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
             }
 
-            return Ok("Cliente creado correctamente.");
-        } 
+            try
+            {
+                var cliente =
+                    _mapper.Map<Clientes>(dto);
+
+                int resultado =
+                    await _servicio.CrearAsync(cliente);
+
+                if (resultado <= 0)
+                {
+                    return BadRequest(
+                        "No se pudo crear el cliente."
+                    );
+                }
+
+                return Ok(
+                    "Cliente creado correctamente."
+                );
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+        }
     }
 }
-

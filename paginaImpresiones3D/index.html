@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Innova 3D - Impresión 3D Personalizada</title>
+        <!-- Estilos e Iconos -->
+        <link rel="stylesheet" href="styles.css" />
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+    </head>
+    <body>
+        <!-- Navegación -->
+        <header>
+            <a href="#" class="logo-container">
+                <img
+                    src="logo.svg"
+                    alt="Innova 3D Logo"
+                    class="logo-img"
+                />
+                <!-- Ruta a logo real -->
+                <div class="logo-text">INNOVA<span>3D</span></div>
+            </a>
+            <nav>
+                <a href="#inicio" class="active">Inicio</a>
+                <a href="#elegirnos">Por qué elegirnos</a>
+                <a href="#categorias">Categorías</a>
+                <a href="#catalogo">Catálogo</a>
+                <a href="#cotizar">Cotizador</a>
+                <a href="#faq">Preguntas</a>
+
+                <!-- Botón del Carrito / Pedido Directo a WhatsApp -->
+                <button type="button" id="btn-open-cart" class="btn-cart-nav" title="Ver mi Pedido">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>Mi Pedido</span>
+                    <span id="cart-badge-count" class="cart-count-badge">0</span>
+                </button>
+
+                <!-- Acciones para visitantes (Sin sesión) -->
+                <div id="auth-guest-actions" class="nav-auth-group">
+                    <button type="button" id="btn-open-login" class="btn-auth-login">
+                        <i class="fa-regular fa-user"></i> Iniciar Sesión
+                    </button>
+                    <button type="button" id="btn-open-register" class="btn-auth-register">
+                        Registrarse
+                    </button>
+                </div>
+
+                <!-- Acciones para usuarios autenticados -->
+                <div id="auth-user-actions" class="nav-auth-group" style="display: none">
+                    <span class="user-session-pill">
+                        <i class="fa-solid fa-circle-user"></i>
+                        <span id="nav-user-display">Usuario</span>
+                    </span>
+                    <button type="button" id="btn-open-admin-panel" class="btn-admin-nav logged-in" style="display: none">
+                        <i class="fa-solid fa-sliders"></i> Panel de Gestión
+                    </button>
+                    <button type="button" id="btn-header-logout" class="btn-auth-logout" title="Cerrar Sesión">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </nav>
+        </header>
+
+        <main>
+            <!-- Hero / Inicio -->
+            <section id="inicio" class="hero">
+                <div class="hero-info">
+                    <h1>Dale vida a tus<br />ideas <span>en 3D</span></h1>
+                    <p>
+                        Soportes, mates, personajes, decoración y mucho más.
+                        Impresiones 3D de alta calidad con envíos a todo el
+                        país.
+                    </p>
+                    <div class="hero-cta">
+                        <a href="#catalogo" class="btn btn-primary"
+                            ><i class="fa-solid fa-cart-shopping"></i> Ver
+                            Productos</a
+                        >
+                        <a href="#cotizar" class="btn btn-secondary"
+                            ><i class="fa-solid fa-calculator"></i> Cotizar
+                            Online</a
+                        >
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <h3>500+</h3>
+                            <p>Clientes felices</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>100%</h3>
+                            <p>Calidad Premium</p>
+                        </div>
+                        <div class="stat-item">
+                            <h3>Todo</h3>
+                            <p>El país</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="visual-circle">
+                        <div class="visual-logo-wrapper">
+                            <!-- Colocar el logo aquí -->
+                            <img
+                                src="logo.svg"
+                                alt="Innova 3D Logo Central"
+                                class="visual-logo"
+                            />
+                        </div>
+                    </div>
+                    <!-- Decoraciones que se adaptan bien al logo -->
+                    <div class="badge-floating badge-1">
+                        <i
+                            class="fa-solid fa-print"
+                            style="color: var(--accent)"
+                        ></i>
+                        Soportes
+                    </div>
+                    <div class="badge-floating badge-2">
+                        <i
+                            class="fa-solid fa-heart"
+                            style="color: var(--accent)"
+                        ></i>
+                        Decoración
+                    </div>
+                </div>
+            </section>
+
+            <!-- Beneficios -->
+            <section id="elegirnos" class="benefits-section">
+                <span class="section-tag">Nuestros Valores</span>
+                <h2 class="section-title">¿Por qué elegirnos?</h2>
+                <p class="section-subtitle">
+                    Somos apasionados por la impresión 3D y lo demostramos en
+                    cada pieza que fabricamos.
+                </p>
+
+                <div class="benefits-grid">
+                    <div class="benefit-card">
+                        <i class="fa-solid fa-trophy benefit-icon"></i>
+                        <h3>Alta Calidad</h3>
+                        <p>
+                            Utilizamos filamentos premium (PLA, PLA+ y resina de
+                            alta calidad) para garantizar resultados duraderos,
+                            detallados y robustos en cada pieza.
+                        </p>
+                    </div>
+                    <div class="benefit-card">
+                        <i
+                            class="fa-solid fa-wand-magic-sparkles benefit-icon"
+                        ></i>
+                        <h3>100% Personalizable</h3>
+                        <p>
+                            Cualquier diseño, color y tamaño. Envianos tu
+                            archivo STL o lo diseñamos juntos desde cero para
+                            que quede exactamente como te lo imaginás.
+                        </p>
+                    </div>
+                    <div class="benefit-card">
+                        <i class="fa-solid fa-truck-fast benefit-icon"></i>
+                        <h3>Envíos a Todo el País</h3>
+                        <p>
+                            Despachamos tus impresiones a toda la Argentina por
+                            el método de envío más conveniente, de manera ágil,
+                            rápida y segura.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Categorías -->
+            <section id="categorias" class="categories-section">
+                <span class="section-tag">Nuestras Categorías</span>
+                <h2 class="section-title">¿Qué estás buscando?</h2>
+                <p class="section-subtitle">
+                    Desde soportes gamer hasta decoración única para el hogar,
+                    tenemos todo impreso en 3D.
+                </p>
+
+                <div class="categories-grid" id="categories-container">
+                    <!-- Generación dinámica de Categorías con JS -->
+                </div>
+            </section>
+
+            <!-- Tienda / Catálogo -->
+            <section id="catalogo" class="shop-section">
+                <div class="shop-container">
+                    <div style="text-align: center">
+                        <span class="section-tag">Nuestra Tienda</span>
+                        <h2 class="section-title">Todos Nuestros Productos</h2>
+                        <p class="section-subtitle">
+                            Consultá por cualquier producto y te enviamos precio
+                            y tiempo de entrega por WhatsApp de forma directa.
+                        </p>
+                    </div>
+
+                    <div class="filter-chips" id="filter-chips-container">
+                        <!-- Chips de Filtros generados con JS -->
+                    </div>
+
+                    <div class="products-grid" id="products-container">
+                        <!-- Productos inyectados vía JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cotizador -->
+            <section id="cotizar" class="quote-section">
+                <div class="quote-container">
+                    <span class="section-tag">Servicio a Medida</span>
+                    <h2
+                        class="section-title"
+                        style="margin-bottom: 2rem; text-align: center"
+                    >
+                        Presupuestá tu Pieza
+                    </h2>
+
+                    <form id="contact-form">
+                        <div class="form-group">
+                            <label for="nombre">Nombre y Apellido</label>
+                            <input
+                                type="text"
+                                id="nombre"
+                                placeholder="Ej: Juan Pérez"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="material">Material Ideal</label>
+                            <select id="material">
+                                <option value="PLA">
+                                    PLA (Ideal para figuras, soportes y mates)
+                                </option>
+                                <option value="PETG">
+                                    PETG (Mayor resistencia al calor y al agua)
+                                </option>
+                                <option value="Resina">
+                                    Resina (Nivel de detalle extremo)
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="link"
+                                >Link de tu Modelo 3D
+                                (STL/Drive/Thingiverse)</label
+                            >
+                            <input
+                                type="url"
+                                id="link"
+                                placeholder="Ej: https://www.thingiverse.com/thing:123456"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="mensaje">Detalles Adicionales</label>
+                            <textarea
+                                id="mensaje"
+                                rows="4"
+                                placeholder="Contanos de qué tamaño o color querés que sea tu impresión..."
+                            ></textarea>
+                        </div>
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            style="width: 100%"
+                        >
+                            <i class="fa-brands fa-whatsapp"></i> Enviar
+                            Consulta al WhatsApp
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Preguntas Frecuentes -->
+            <section id="faq" class="faq-section">
+                <div style="text-align: center">
+                    <span class="section-tag">Resolviendo dudas</span>
+                    <h2 class="section-title">Preguntas Frecuentes</h2>
+                    <p class="section-subtitle">
+                        ¿Tenés dudas? Estas son algunas de las consultas más
+                        recurrentes.
+                    </p>
+                </div>
+
+                <div class="faq-container" id="faq-container">
+                    <!-- Renderizado con JS -->
+                </div>
+            </section>
+        </main>
+
+        <!-- WhatsApp Flotante -->
+        <a href="https://wa.me/541123456789" class="wa-float" target="_blank">
+            <i class="fa-brands fa-whatsapp"></i>
+        </a>
+
+        <!-- Footer -->
+        <footer>
+            <div class="footer-grid">
+                <div class="footer-info">
+                    <div class="logo-text">INNOVA<span>3D</span></div>
+                    <p>
+                        Emprendimiento especializado en impresión y modelado 3D
+                        de alta calidad. Te ayudamos a plasmar tus ideas y
+                        proyectos con precisión, dedicación y el mejor
+                        equipamiento.
+                    </p>
+                    <div class="footer-socials">
+                        <a href="https://instagram.com/innova._3d" target="_blank" class="social-btn"
+                            ><i class="fa-brands fa-instagram"></i
+                        ></a>
+                        <a href="https://wa.me/543838401302" target="_blank" class="social-btn"
+                            ><i class="fa-brands fa-whatsapp"></i
+                        ></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Navegación</h4>
+                    <ul>
+                        <li><a href="#inicio">Inicio</a></li>
+                        <li><a href="#elegirnos">Por qué elegirnos</a></li>
+                        <li><a href="#categorias">Categorías</a></li>
+                        <li><a href="#catalogo">Catálogo</a></li>
+                        <li><a href="#cotizar">Cotizar</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Contacto & Redes</h4>
+                    <ul>
+                        <li>
+                            <a href="https://wa.me/543838401302" target="_blank"
+                                ><i
+                                    class="fa-solid fa-phone"
+                                    style="color: var(--accent)"
+                                ></i>
+                                +54 3838 40-1302</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="https://instagram.com/innova._3d"
+                                target="_blank"
+                                ><i
+                                    class="fa-brands fa-instagram"
+                                    style="color: var(--accent)"
+                                ></i>
+                                @innova._3d</a
+                            >
+                        </li>
+                        <li>
+                            <a href="#"
+                                ><i
+                                    class="fa-solid fa-location-dot"
+                                    style="color: var(--accent)"
+                                ></i>
+                                Argentina</a
+                            >
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Innova 3D. Todos los derechos reservados.</p>
+                <p>
+                    Hecho con
+                    <i class="fa-solid fa-heart" style="color: #ff3366"></i>
+                    para clases
+                </p>
+            </div>
+        </footer>
+
+        <!-- Contenedor de Notificaciones Toast -->
+        <div id="toast-container" class="toast-container"></div>
+
+        <!-- Modal: Iniciar Sesión / Registrarse -->
+        <div id="auth-modal" class="admin-modal-overlay" aria-hidden="true">
+            <div class="admin-modal-card auth-modal-card">
+                <div class="admin-modal-header">
+                    <div>
+                        <span class="section-tag" style="margin-bottom: 0.2rem">Innova 3D</span>
+                        <h3 id="auth-modal-title">Bienvenido a tu Cuenta</h3>
+                    </div>
+                    <button type="button" class="admin-close-btn" data-close-modal="auth-modal">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Selector de Pestañas Login / Registro -->
+                <div class="auth-switcher">
+                    <button type="button" class="auth-switch-btn active" data-auth-mode="login">
+                        Iniciar Sesión
+                    </button>
+                    <button type="button" class="auth-switch-btn" data-auth-mode="register">
+                        Registrarse
+                    </button>
+                </div>
+
+                <!-- Vista 1: Iniciar Sesión -->
+                <div id="auth-view-login" class="auth-view active">
+                    <p class="admin-login-subtitle">
+                        Ingresá tu usuario y contraseña para acceder a tu cuenta.
+                    </p>
+                    <form id="auth-login-form">
+                        <div class="form-group">
+                            <label for="login-username">Usuario</label>
+                            <input
+                                type="text"
+                                id="login-username"
+                                placeholder="Tu nombre de usuario"
+                                autocomplete="username"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Contraseña</label>
+                            <input
+                                type="password"
+                                id="login-password"
+                                placeholder="••••••••"
+                                autocomplete="current-password"
+                                required
+                            />
+                        </div>
+                        <div id="auth-login-error" class="admin-alert-error" style="display: none"></div>
+                        <button type="submit" id="auth-login-submit" class="btn btn-primary" style="width: 100%">
+                            <i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Vista 2: Registrarse -->
+                <div id="auth-view-register" class="auth-view">
+                    <p class="admin-login-subtitle">
+                        Creá tu cuenta gratis y tus datos quedarán guardados para futuras cotizaciones y pedidos.
+                    </p>
+                    <form id="auth-register-form">
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label for="reg-nombre">Nombre</label>
+                                <input type="text" id="reg-nombre" placeholder="Ej: Juan" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-apellido">Apellido</label>
+                                <input type="text" id="reg-apellido" placeholder="Ej: Pérez" required />
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label for="reg-dni">DNI (sin puntos)</label>
+                                <input type="text" id="reg-dni" placeholder="Ej: 40123456" pattern="\d{7,10}" title="7 a 10 dígitos numéricos" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-telefono">Teléfono</label>
+                                <input type="text" id="reg-telefono" placeholder="Ej: 1123456789" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">Correo Electrónico</label>
+                            <input type="email" id="reg-email" placeholder="Ej: juan@correo.com" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-direccion">Dirección / Localidad (Opcional)</label>
+                            <input type="text" id="reg-direccion" placeholder="Ej: Av. Siempre Viva 742, CABA" />
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="form-group">
+                                <label for="reg-usuario">Nombre de Usuario</label>
+                                <input type="text" id="reg-usuario" placeholder="Ej: juanperez" minlength="3" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-password">Contraseña</label>
+                                <input type="password" id="reg-password" placeholder="Mínimo 4 caracteres" minlength="4" required />
+                            </div>
+                        </div>
+                        <div id="auth-register-error" class="admin-alert-error" style="display: none"></div>
+                        <button type="submit" id="auth-register-submit" class="btn btn-primary" style="width: 100%">
+                            <i class="fa-solid fa-user-plus"></i> Crear Cuenta
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Carrito / Pedido Directo a WhatsApp -->
+        <div id="cart-modal" class="admin-modal-overlay" aria-hidden="true">
+            <div class="admin-modal-card cart-modal-card">
+                <div class="admin-modal-header">
+                    <div>
+                        <span class="section-tag" style="margin-bottom: 0.2rem">Resumen de Compra</span>
+                        <h3>Tu Pedido <span>Innova 3D</span></h3>
+                    </div>
+                    <button type="button" class="admin-close-btn" data-close-modal="cart-modal">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="cart-body">
+                    <div id="cart-items-container" class="cart-items-list">
+                        <!-- Productos del carrito generados por JS -->
+                    </div>
+
+                    <div id="cart-checkout-section" class="cart-checkout-box">
+                        <div class="cart-summary-row">
+                            <span>Total Estimado del Pedido:</span>
+                            <strong id="cart-total-amount" class="cart-total-price">$0</strong>
+                        </div>
+
+                        <form id="cart-whatsapp-form">
+                            <div class="form-group" style="margin-bottom: 0.85rem">
+                                <label for="cart-client-name">Tu Nombre</label>
+                                <input
+                                    type="text"
+                                    id="cart-client-name"
+                                    placeholder="Ej: Juan Pérez"
+                                    required
+                                />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 1rem">
+                                <label for="cart-client-notes">Aclaraciones (Color preferido, envío o retiro)</label>
+                                <textarea
+                                    id="cart-client-notes"
+                                    rows="2"
+                                    placeholder="Ej: Color negro mate, envío a Córdoba..."
+                                ></textarea>
+                            </div>
+                            <p class="cart-wa-notice">
+                                <i class="fa-brands fa-whatsapp" style="color: #25d366"></i>
+                                Al enviar tu pedido se abrirá un chat en nuestro WhatsApp con tu lista de productos para coordinar el pago y la entrega de forma directa.
+                            </p>
+                            <div class="cart-actions-row">
+                                <button type="button" id="btn-clear-cart" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-trash-can"></i> Vaciar
+                                </button>
+                                <button type="submit" class="btn-consult cart-wa-submit">
+                                    <i class="fa-brands fa-whatsapp"></i> Hacer Pedido por WhatsApp
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Panel de Administración Completo -->
+        <div id="admin-panel-modal" class="admin-modal-overlay" aria-hidden="true">
+            <div class="admin-modal-card admin-dashboard-card">
+                <div class="admin-modal-header">
+                    <div class="admin-header-title">
+                        <span class="section-tag" style="margin-bottom: 0.2rem">Gestión de Tienda</span>
+                        <h3>Panel de Gestión <span>INNOVA 3D</span></h3>
+                    </div>
+                    <div class="admin-header-actions">
+                        <span id="api-status-badge" class="api-badge">
+                            <span class="api-dot"></span> En línea
+                        </span>
+                        <span id="admin-user-badge" class="admin-user-pill">
+                            <i class="fa-solid fa-user-shield"></i> <span id="admin-current-user">admin</span>
+                        </span>
+                        <button type="button" id="btn-admin-logout" class="btn btn-secondary btn-sm">
+                            <i class="fa-solid fa-power-off"></i> Salir
+                        </button>
+                        <button type="button" class="admin-close-btn" data-close-modal="admin-panel-modal">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Pestañas del Panel -->
+                <div class="admin-tabs">
+                    <button type="button" class="admin-tab active" data-admin-tab="productos">
+                        <i class="fa-solid fa-cubes"></i> Artículos / Catálogo
+                    </button>
+                    <button type="button" class="admin-tab" data-admin-tab="materiales">
+                        <i class="fa-solid fa-layer-group"></i> Materiales & Stock
+                    </button>
+                    <button type="button" class="admin-tab" data-admin-tab="impresoras">
+                        <i class="fa-solid fa-print"></i> Impresoras 3D
+                    </button>
+                    <button type="button" class="admin-tab" data-admin-tab="modelos">
+                        <i class="fa-solid fa-cube"></i> Modelos 3D & Pedidos
+                    </button>
+                    <button type="button" class="admin-tab" data-admin-tab="taller">
+                        <i class="fa-solid fa-gears"></i> Trabajos & Consumo
+                    </button>
+                    <button type="button" class="admin-tab" data-admin-tab="clientes">
+                        <i class="fa-solid fa-users"></i> Clientes & Roles
+                    </button>
+                </div>
+
+                <!-- Contenido Pestaña 1: Productos -->
+                <div class="admin-tab-content active" id="tab-productos">
+                    <div class="admin-split-layout">
+                        <div class="admin-form-panel">
+                            <h4 id="producto-form-title">
+                                <i class="fa-solid fa-plus-circle" style="color: var(--accent)"></i>
+                                Nuevo Artículo
+                            </h4>
+                            <form id="admin-producto-form">
+                                <input type="hidden" id="prod-id" value="" />
+                                <input type="hidden" id="prod-activo" value="true" />
+                                <input type="hidden" id="prod-fecha-alta" value="" />
+                                <div class="form-group">
+                                    <label for="prod-nombre">Nombre del Artículo</label>
+                                    <input type="text" id="prod-nombre" placeholder="Ej: Soporte Gamer de Auriculares" required />
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="prod-categoria">Categoría</label>
+                                        <select id="prod-categoria">
+                                            <option value="soportes">🎧 Soportes & Bases</option>
+                                            <option value="personajes">👤 Personajes & Bustos</option>
+                                            <option value="mates">🧉 Mates 3D</option>
+                                            <option value="oficina">✏️ Art. de Oficina</option>
+                                            <option value="hogar">🏠 Art. para el Hogar</option>
+                                            <option value="llaveros">🔑 Llaveros</option>
+                                            <option value="juguetes">🎲 Juguetes</option>
+                                            <option value="medida">✨ A medida</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prod-emoji">Ícono / Emoji</label>
+                                        <input type="text" id="prod-emoji" placeholder="Ej: 🎧" value="🧊" maxlength="8" />
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="prod-precio">Precio de Venta ($)</label>
+                                        <input type="number" id="prod-precio" step="0.01" min="0.01" placeholder="Ej: 8500" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="prod-modelo3d">ID Modelo 3D (Opcional)</label>
+                                        <input type="number" id="prod-modelo3d" min="0" placeholder="0 = Sin asignar" value="0" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="prod-img">URL de Foto / Imagen (Opcional)</label>
+                                    <input type="url" id="prod-img" placeholder="https://... (dejar vacío para usar ícono 3D)" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="prod-desc">Descripción</label>
+                                    <textarea id="prod-desc" rows="3" placeholder="Descripción detallada del producto..." required></textarea>
+                                </div>
+                                <div class="admin-form-buttons">
+                                    <button type="submit" class="btn btn-primary" style="flex: 1">
+                                        <i class="fa-solid fa-floppy-disk"></i> Guardar Artículo
+                                    </button>
+                                    <button type="button" id="btn-cancel-prod" class="btn btn-secondary" style="display: none">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+
+                            <hr style="border-color: var(--border); margin: 1.4rem 0" />
+                            <h4>
+                                <i class="fa-solid fa-link" style="color: var(--accent)"></i>
+                                Material por Artículo
+                            </h4>
+                            <form id="admin-prod-mat-form">
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="pm-id-prod">ID Artículo</label>
+                                        <input type="number" id="pm-id-prod" min="1" placeholder="Ej: 1" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="pm-id-mat">ID Material</label>
+                                        <input type="number" id="pm-id-mat" min="1" placeholder="Ej: 1" required />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="pm-cantidad">Cantidad Estimada (gr)</label>
+                                    <input type="number" id="pm-cantidad" min="1" value="85" required />
+                                </div>
+                                <button type="submit" class="btn btn-secondary" style="width: 100%">
+                                    <i class="fa-solid fa-link"></i> Asociar Material al Artículo
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="admin-list-panel">
+                            <div class="admin-list-header">
+                                <h4>Artículos Publicados (<span id="admin-prod-count">0</span>)</h4>
+                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+                                    <button type="button" id="btn-seed-catalog" class="btn btn-secondary btn-sm" title="Cargar los 12 productos iniciales en el catálogo">
+                                        <i class="fa-solid fa-wand-magic-sparkles"></i> Cargar Artículos de Ejemplo
+                                    </button>
+                                    <button type="button" id="btn-refresh-prod" class="btn btn-secondary btn-sm">
+                                        <i class="fa-solid fa-rotate"></i> Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="admin-productos-list" class="admin-items-grid">
+                                <!-- Inyectado con Skeleton Loader / JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido Pestaña 2: Materiales -->
+                <div class="admin-tab-content" id="tab-materiales">
+                    <div class="admin-split-layout">
+                        <div class="admin-form-panel">
+                            <h4>
+                                <i class="fa-solid fa-layer-group" style="color: var(--accent)"></i>
+                                Nuevo Material
+                            </h4>
+                            <form id="admin-material-form">
+                                <div class="form-group">
+                                    <label for="mat-nombre">Nombre del Material</label>
+                                    <input type="text" id="mat-nombre" placeholder="Ej: PLA+ Silk Cian" required />
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="mat-tipo">Tipo</label>
+                                        <select id="mat-tipo">
+                                            <option value="PLA">PLA / PLA+</option>
+                                            <option value="PETG">PETG</option>
+                                            <option value="ABS">ABS / ASA</option>
+                                            <option value="TPU">TPU Flexible</option>
+                                            <option value="Resina">Resina UV</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="mat-color">Color</label>
+                                        <input type="text" id="mat-color" placeholder="Ej: Negro / Cian" value="Negro" required />
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="mat-diametro">Diámetro (mm)</label>
+                                        <input type="number" id="mat-diametro" step="0.01" value="1.75" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="mat-unidad">Unidad</label>
+                                        <input type="text" id="mat-unidad" value="kg" placeholder="kg / gr / ml" required />
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%">
+                                    <i class="fa-solid fa-plus"></i> Registrar Material
+                                </button>
+                            </form>
+
+                            <hr style="border-color: var(--border); margin: 1.4rem 0" />
+                            <h4>
+                                <i class="fa-solid fa-boxes-stacked" style="color: var(--accent)"></i>
+                                Movimiento de Stock
+                            </h4>
+                            <form id="admin-mov-mat-form">
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="mov-id-mat">ID Material</label>
+                                        <input type="number" id="mov-id-mat" min="1" placeholder="Ej: 1" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="mov-tipo">Movimiento</label>
+                                        <select id="mov-tipo">
+                                            <option value="Entrada">Entrada (+)</option>
+                                            <option value="Salida">Salida (-)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="mov-cantidad">Cantidad</label>
+                                        <input type="number" id="mov-cantidad" step="0.01" min="0.01" value="1" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="mov-obs">Observación</label>
+                                        <input type="text" id="mov-obs" placeholder="Ej: Compra rollo nuevo" />
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-secondary" style="width: 100%">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Registrar Movimiento
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="admin-list-panel">
+                            <div class="admin-list-header">
+                                <h4>Materiales Disponibles (<span id="admin-mat-count">0</span>) & Movimientos (<span id="admin-mov-count">0</span>)</h4>
+                                <button type="button" id="btn-refresh-mat" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-rotate"></i> Actualizar
+                                </button>
+                            </div>
+                            <div id="admin-materiales-list" class="admin-items-grid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido Pestaña 3: Impresoras -->
+                <div class="admin-tab-content" id="tab-impresoras">
+                    <div class="admin-split-layout">
+                        <div class="admin-form-panel">
+                            <h4>
+                                <i class="fa-solid fa-print" style="color: var(--accent)"></i>
+                                Nueva Impresora 3D
+                            </h4>
+                            <form id="admin-impresora-form">
+                                <div class="form-group">
+                                    <label for="imp-nombre">Nombre Identificador</label>
+                                    <input type="text" id="imp-nombre" placeholder="Ej: Bambu Lab X1C #1" required />
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="imp-marca">Marca</label>
+                                        <input type="text" id="imp-marca" placeholder="Ej: Bambu Lab / Creality" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="imp-modelo">Modelo</label>
+                                        <input type="text" id="imp-modelo" placeholder="Ej:P1S / Ender 3 V3" required />
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="imp-tec">Tecnología</label>
+                                        <select id="imp-tec">
+                                            <option value="FDM">FDM (Filamento)</option>
+                                            <option value="SLA">SLA / MSLA (Resina)</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="imp-vol">Volumen X/Y/Z (mm)</label>
+                                        <input type="number" id="imp-vol" value="250" min="50" max="999" required />
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%">
+                                    <i class="fa-solid fa-plus"></i> Agregar Impresora
+                                </button>
+                            </form>
+
+                            <hr style="border-color: var(--border); margin: 1.4rem 0" />
+                            <h4>
+                                <i class="fa-solid fa-plug-circle-check" style="color: var(--accent)"></i>
+                                Material Compatible por Impresora
+                            </h4>
+                            <form id="admin-imp-mat-form">
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="im-id-imp">ID Impresora</label>
+                                        <input type="number" id="im-id-imp" min="1" placeholder="Ej: 1" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="im-id-mat">ID Material</label>
+                                        <input type="number" id="im-id-mat" min="1" placeholder="Ej: 1" required />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="im-obs">Perfil / Observación</label>
+                                    <input type="text" id="im-obs" placeholder="Ej: Boquilla 0.4mm - 210°C" />
+                                </div>
+                                <button type="submit" class="btn btn-secondary" style="width: 100%">
+                                    <i class="fa-solid fa-check-double"></i> Vincular Compatibilidad
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="admin-list-panel">
+                            <div class="admin-list-header">
+                                <h4>Parque de Impresoras (<span id="admin-imp-count">0</span>)</h4>
+                                <button type="button" id="btn-refresh-imp" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-rotate"></i> Actualizar
+                                </button>
+                            </div>
+                            <div id="admin-impresoras-list" class="admin-items-grid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido Pestaña 4: Modelos 3D & Pedidos -->
+                <div class="admin-tab-content" id="tab-modelos">
+                    <div class="admin-split-layout">
+                        <div class="admin-form-panel">
+                            <h4>
+                                <i class="fa-solid fa-cube" style="color: var(--accent)"></i>
+                                Registrar Modelo 3D
+                            </h4>
+                            <form id="admin-modelo-form">
+                                <div class="form-group">
+                                    <label for="mod-nombre">Nombre del Modelo</label>
+                                    <input type="text" id="mod-nombre" placeholder="Ej: Soporte_Auriculares_v2" required />
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="mod-formato">Formato</label>
+                                        <select id="mod-formato">
+                                            <option value="STL">STL</option>
+                                            <option value="3MF">3MF</option>
+                                            <option value="OBJ">OBJ</option>
+                                            <option value="STEP">STEP</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="mod-archivo">Archivo / Ruta / Link</label>
+                                        <input type="text" id="mod-archivo" placeholder="soporte_v2.stl" required />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="mod-desc">Descripción Técnica</label>
+                                    <textarea id="mod-desc" rows="2" placeholder="Parámetros de relleno, soportes, etc." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%">
+                                    <i class="fa-solid fa-upload"></i> Guardar Modelo 3D
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="admin-list-panel">
+                            <div class="admin-list-header">
+                                <h4>Modelos 3D (<span id="admin-mod-count">0</span>) & Pedidos (<span id="admin-ped-count">0</span>)</h4>
+                                <button type="button" id="btn-refresh-mod" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-rotate"></i> Actualizar
+                                </button>
+                            </div>
+                            <div id="admin-modelos-list" class="admin-items-grid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido Pestaña 5: Trabajos de Impresión & Consumo de Material -->
+                <div class="admin-tab-content" id="tab-taller">
+                    <div class="admin-split-layout">
+                        <div class="admin-form-panel">
+                            <h4>
+                                <i class="fa-solid fa-gears" style="color: var(--accent)"></i>
+                                Nuevo Trabajo de Impresión
+                            </h4>
+                            <form id="admin-trabajo-form">
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="trab-pedido">ID Pedido</label>
+                                        <input type="number" id="trab-pedido" min="1" value="1" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="trab-producto">ID Artículo</label>
+                                        <input type="number" id="trab-producto" min="1" value="1" required />
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="trab-impresora">ID Impresora</label>
+                                        <input type="number" id="trab-impresora" min="1" value="1" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="trab-modelo">ID Modelo 3D</label>
+                                        <input type="number" id="trab-modelo" min="1" value="1" required />
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="trab-material">ID Material</label>
+                                        <input type="number" id="trab-material" min="1" value="1" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="trab-cantidad">Unidades</label>
+                                        <input type="number" id="trab-cantidad" min="1" value="1" required />
+                                    </div>
+                                </div>
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="trab-peso">Peso Estimado (gr)</label>
+                                        <input type="number" id="trab-peso" step="0.1" min="1" value="120" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="trab-estado">Estado</label>
+                                        <select id="trab-estado">
+                                            <option value="1">Pendiente</option>
+                                            <option value="2">Imprimiendo</option>
+                                            <option value="3">Finalizada</option>
+                                            <option value="4">Fallida</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="trab-obs">Notas del Trabajo</label>
+                                    <input type="text" id="trab-obs" placeholder="Ej: Altura de capa 0.2mm, relleno 15%" required />
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%">
+                                    <i class="fa-solid fa-play"></i> Programar Trabajo
+                                </button>
+                            </form>
+
+                            <hr style="border-color: var(--border); margin: 1.4rem 0" />
+                            <h4>
+                                <i class="fa-solid fa-scale-balanced" style="color: var(--accent)"></i>
+                                Registrar Consumo de Filamento
+                            </h4>
+                            <form id="admin-consumo-form">
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="cons-trabajo">ID Trabajo</label>
+                                        <input type="number" id="cons-trabajo" min="1" value="1" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cons-material">ID Material</label>
+                                        <input type="number" id="cons-material" min="1" value="1" required />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cons-cantidad">Gramos Consumidos</label>
+                                    <input type="number" id="cons-cantidad" step="0.1" min="0.1" value="95" required />
+                                </div>
+                                <button type="submit" class="btn btn-secondary" style="width: 100%">
+                                    <i class="fa-solid fa-check"></i> Registrar Consumo Real
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="admin-list-panel">
+                            <div class="admin-list-header">
+                                <h4>Trabajos (<span id="admin-trab-count">0</span>) & Consumos (<span id="admin-cons-count">0</span>)</h4>
+                                <button type="button" id="btn-refresh-taller" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-rotate"></i> Actualizar
+                                </button>
+                            </div>
+                            <div id="admin-taller-list" class="admin-items-grid"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido Pestaña 6: Clientes, Personas & Roles -->
+                <div class="admin-tab-content" id="tab-clientes">
+                    <div class="admin-split-layout">
+                        <div class="admin-form-panel">
+                            <h4>
+                                <i class="fa-solid fa-magnifying-glass" style="color: var(--accent)"></i>
+                                Buscar Cliente / Persona
+                            </h4>
+                            <form id="admin-buscar-persona-form" style="margin-bottom: 1.2rem">
+                                <div class="form-group">
+                                    <label for="per-buscar-input">Nombre, Apellido o DNI</label>
+                                    <input type="text" id="per-buscar-input" placeholder="Ej: Juan o 40123456" />
+                                </div>
+                                <div style="display: flex; gap: 0.5rem">
+                                    <button type="submit" class="btn btn-primary" style="flex: 1">
+                                        <i class="fa-solid fa-search"></i> Buscar
+                                    </button>
+                                    <button type="button" id="btn-per-ver-todos" class="btn btn-secondary">
+                                        Ver Todos
+                                    </button>
+                                </div>
+                            </form>
+
+                            <hr style="border-color: var(--border); margin: 1.4rem 0" />
+                            <h4>
+                                <i class="fa-solid fa-user-shield" style="color: var(--accent)"></i>
+                                Asignar Rol a Usuario
+                            </h4>
+                            <form id="admin-usuariorol-form">
+                                <div class="admin-form-row">
+                                    <div class="form-group">
+                                        <label for="ur-id-usuario">ID Usuario</label>
+                                        <input type="number" id="ur-id-usuario" min="1" placeholder="Ej: 2" required />
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="ur-id-rol">Rol</label>
+                                        <select id="ur-id-rol">
+                                            <option value="1">Administrador</option>
+                                            <option value="2">Cliente</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-secondary" style="width: 100%">
+                                    <i class="fa-solid fa-key"></i> Asignar Rol
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="admin-list-panel">
+                            <div class="admin-list-header">
+                                <h4>Personas (<span id="admin-per-count">0</span>), Clientes (<span id="admin-cli-count">0</span>) & Roles (<span id="admin-rol-count">0</span>)</h4>
+                                <button type="button" id="btn-refresh-clientes" class="btn btn-secondary btn-sm">
+                                    <i class="fa-solid fa-rotate"></i> Actualizar
+                                </button>
+                            </div>
+                            <div id="admin-clientes-list" class="admin-items-grid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="main.js"></script>
+    </body>
+</html>

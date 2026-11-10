@@ -1,3 +1,5 @@
+using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
@@ -10,98 +12,142 @@ namespace impresion3d.Api.Controllers
     public class DetallePedidoController : ControllerBase
     {
         private readonly ServicioDetallePedido _servicio;
+        private readonly IValidator<DetallePedidoCrearDto> _validatorCrear;
+        private readonly IMapper _mapper;
 
-        public DetallePedidoController(ServicioDetallePedido servicio)
+        public DetallePedidoController(
+            ServicioDetallePedido servicio,
+            IValidator<DetallePedidoCrearDto> validatorCrear,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorCrear = validatorCrear;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var detalles = await _servicio.ObtenerTodosAsync();
-            var dtos = detalles.Select(d => new DetallePedidoDto
-            {
-                id_detalle_pedido = d.id_detalle_pedido,
-                id_pedido = d.id_pedido,
-                id_producto = d.id_producto,
-                cantidad = d.cantidad,
-                precio_unitario = d.precio_unitario,
-                subtotal = d.subtotal
-            });
+
+            var dtos =
+                _mapper.Map<List<DetallePedidoDto>>(detalles);
+
             return Ok(dtos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var d = await _servicio.ObtenerPorIdAsync(id);
-            var dto = new DetallePedidoDto
+            try
             {
-                id_detalle_pedido = d.id_detalle_pedido,
-                id_pedido = d.id_pedido,
-                id_producto = d.id_producto,
-                cantidad = d.cantidad,
-                precio_unitario = d.precio_unitario,
-                subtotal = d.subtotal
-            };
-            return Ok(dto);
+                var d = await _servicio.ObtenerPorIdAsync(id);
+
+                var dto =
+                    _mapper.Map<DetallePedidoDto>(d);
+
+                return Ok(dto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpGet("pedido/{id_pedido}")]
         public async Task<IActionResult> GetByPedido(int id_pedido)
         {
             var detalles = await _servicio.ObtenerPorPedidoAsync(id_pedido);
-            var dtos = detalles.Select(d => new DetallePedidoDto
-            {
-                id_detalle_pedido = d.id_detalle_pedido,
-                id_pedido = d.id_pedido,
-                id_producto = d.id_producto,
-                cantidad = d.cantidad,
-                precio_unitario = d.precio_unitario,
-                subtotal = d.subtotal
-            });
+
+            var dtos =
+                _mapper.Map<List<DetallePedidoDto>>(detalles);
+
             return Ok(dtos);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] DetallePedidoCrearDto dto)
         {
-            var entidad = new DetallePedido
-            {
-                id_pedido = dto.id_pedido,
-                id_producto = dto.id_producto,
-                cantidad = dto.cantidad,
-                precio_unitario = dto.precio_unitario,
-                subtotal = dto.subtotal
-            };
+            var validationResultado =
+                await _validatorCrear.ValidateAsync(dto);
 
-            var id = await _servicio.CrearAsync(entidad);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            if (!validationResultado.IsValid)
+            {
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
+            }
+
+            try
+            {
+                var entidad =
+                    _mapper.Map<DetallePedido>(dto);
+
+                var id = await _servicio.CrearAsync(entidad);
+                return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] DetallePedidoActualizarDto dto)
         {
-            var entidad = new DetallePedido
+            try
             {
-                id_detalle_pedido = id,
-                id_pedido = dto.id_pedido,
-                id_producto = dto.id_producto,
-                cantidad = dto.cantidad,
-                precio_unitario = dto.precio_unitario,
-                subtotal = dto.subtotal
-            };
+                var entidad =
+                    _mapper.Map<DetallePedido>(dto);
 
-            await _servicio.ActualizarAsync(entidad);
-            return NoContent();
+                entidad.id_detalle_pedido = id;
+
+                await _servicio.ActualizarAsync(entidad);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _servicio.EliminarAsync(id);
-            return NoContent();
+            try
+            {
+                await _servicio.EliminarAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
     }
 }

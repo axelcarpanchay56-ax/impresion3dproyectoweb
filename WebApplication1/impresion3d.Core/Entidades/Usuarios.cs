@@ -13,10 +13,10 @@ namespace impresion3d.Core.Entidades
         public int id_persona { get; set; }
 
         [Column("usuario")]
-        public string usuario { get; set; }
+        public string usuario { get; set; } = string.Empty;
 
         [Column("password_hash")]
-        public string password_hash { get; set; }
+        public string password_hash { get; set; } = string.Empty;
 
         [Column("activo")]
         public bool activo { get; set; }

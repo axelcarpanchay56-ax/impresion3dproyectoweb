@@ -13,10 +13,10 @@ namespace impresion3d.Core.Entidades
         public int id_modelo3d { get; set; }
 
         [Column("nombre")]
-        public string nombre { get; set; }
+        public string nombre { get; set; } = string.Empty;
 
         [Column("descripcion")]
-        public string descripcion { get; set; }
+        public string? descripcion { get; set; }
 
         [Column("precio_venta")]
         public decimal precio_venta { get; set; }

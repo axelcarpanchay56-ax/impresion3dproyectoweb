@@ -1,7 +1,7 @@
 ﻿using impresion3d.Core.Entidades;
 using impresion3d.Core.Interfaces;
-using MySqlConnector;
 using System.Data;
+using Dapper;
 
 namespace impresion3d.Infrastructure.Repositorios
 {
@@ -12,6 +12,8 @@ namespace impresion3d.Infrastructure.Repositorios
         public UsuarioRepositorio(IMiConexion conexion)
         {
             _conexion = conexion;
+
+            DefaultTypeMap.MatchNamesWithUnderscores = true;
         }
 
         public async Task<Usuarios?> LoginAsync(
@@ -19,85 +21,54 @@ namespace impresion3d.Infrastructure.Repositorios
             string passwordHash)
         {
             using var conexion =
-        (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_usuarios_login",
-                conexion
+            var parametros = new DynamicParameters();
+
+            parametros.Add(
+                "p_usuario",
+                usuario,
+                DbType.String,
+                ParameterDirection.Input
             );
 
-            comando.CommandType = CommandType.StoredProcedure;
+            parametros.Add(
+                "p_password_hash",
+                passwordHash,
+                DbType.String,
+                ParameterDirection.Input
+            );
 
-            comando.Parameters.AddWithValue("p_usuario", usuario);
-            comando.Parameters.AddWithValue("p_password_hash", passwordHash);
+            var usuarioEncontrado =
+                await conexion.QueryFirstOrDefaultAsync<Usuarios>(
+                    "sp_usuarios_login",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            using var reader = await comando.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
-            {
-                Usuarios usuarioEncontrado = new Usuarios
-                {
-                    IdUsuario = Convert.ToInt32(reader["id_usuario"]),
-                    id_persona = Convert.ToInt32(reader["id_persona"]),
-                    usuario = reader["usuario"].ToString(),
-                    password_hash = reader["password_hash"].ToString(),
-                    activo = Convert.ToBoolean(reader["activo"]),
-                    fecha_creacion = Convert.ToDateTime(reader["fecha_creacion"]),
-
-                    ultimo_acceso = reader["ultimo_acceso"] == DBNull.Value
-                        ? null
-                        : Convert.ToDateTime(reader["ultimo_acceso"])
-                };
-
-                return usuarioEncontrado;
-            }
-
-            return null; 
+            return usuarioEncontrado;
         }
 
         public async Task<int> CrearAsync(Usuarios usuario)
         {
             using var conexion =
-       (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_usuarios_crear",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_id_persona",
-                usuario.id_persona
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_usuario",
-                usuario.usuario
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_password_hash",
-                usuario.password_hash
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_activo",
-                usuario.activo
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_fecha_creacion",
-                usuario.fecha_creacion
-            );
-            comando.Parameters.AddWithValue(
-                "p_ultimo_acceso",
-                usuario.ultimo_acceso
-);
+            parametros.Add("p_id_persona", usuario.id_persona);
+            parametros.Add("p_usuario", usuario.usuario);
+            parametros.Add("p_password_hash", usuario.password_hash);
+            parametros.Add("p_activo", usuario.activo);
+            parametros.Add("p_fecha_creacion", usuario.fecha_creacion);
+            parametros.Add("p_ultimo_acceso", usuario.ultimo_acceso);
 
             int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
+                await conexion.ExecuteAsync(
+                    "sp_usuarios_crear",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
             return filasAfectadas;
         }
@@ -107,69 +78,45 @@ namespace impresion3d.Infrastructure.Repositorios
             bool activo)
         {
             using var conexion =
-       (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_usuarios_cambiar_estado",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
-                "p_id_usuario",
-                idUsuario
-            );
-
-            comando.Parameters.AddWithValue(
-                "p_activo",
-                activo
-            );
+            parametros.Add("p_id_usuario", idUsuario);
+            parametros.Add("p_activo", activo);
 
             int filasAfectadas =
-                await comando.ExecuteNonQueryAsync();
+                await conexion.ExecuteAsync(
+                    "sp_usuarios_cambiar_estado",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return filasAfectadas > 0; 
+            return filasAfectadas > 0;
         }
+
         public async Task<Usuarios?> ObtenerPorUsuarioAsync(string usuario)
         {
             using var conexion =
-                (MySqlConnection)await _conexion.ObtenerConexionAsync();
+                await _conexion.ObtenerConexionAsync();
 
-            using var comando = new MySqlCommand(
-                "sp_usuario_obtener_por_usuario",
-                conexion
-            );
+            var parametros = new DynamicParameters();
 
-            comando.CommandType = CommandType.StoredProcedure;
-
-            comando.Parameters.AddWithValue(
+            parametros.Add(
                 "p_usuario",
-                usuario
+                usuario,
+                DbType.String,
+                ParameterDirection.Input
             );
 
-            using var reader = await comando.ExecuteReaderAsync();
+            var usuarioEncontrado =
+                await conexion.QueryFirstOrDefaultAsync<Usuarios>(
+                    "sp_usuario_obtener_por_usuario",
+                    parametros,
+                    commandType: CommandType.StoredProcedure
+                );
 
-            if (await reader.ReadAsync())
-            {
-                Usuarios usuarioEncontrado = new Usuarios
-                {
-                    IdUsuario = Convert.ToInt32(reader["id_usuario"]),
-                    id_persona = Convert.ToInt32(reader["id_persona"]),
-                    usuario = reader["usuario"].ToString(),
-                    password_hash = reader["password_hash"].ToString(),
-                    activo = Convert.ToBoolean(reader["activo"]),
-                    fecha_creacion = Convert.ToDateTime(reader["fecha_creacion"]),
-
-                    ultimo_acceso = reader["ultimo_acceso"] == DBNull.Value
-                        ? null
-                        : Convert.ToDateTime(reader["ultimo_acceso"])
-                };
-
-                return usuarioEncontrado;
-            }
-
-            return null;
-        } 
+            return usuarioEncontrado;
+        }
     }
 }

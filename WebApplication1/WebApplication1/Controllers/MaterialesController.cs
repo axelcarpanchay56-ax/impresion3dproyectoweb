@@ -1,3 +1,5 @@
+using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using impresion3d.Api.DTOs;
 using impresion3d.Core.Entidades;
@@ -10,86 +12,131 @@ namespace impresion3d.Api.Controllers
     public class MaterialesController : ControllerBase
     {
         private readonly ServicioMateriales _servicio;
+        private readonly IValidator<MaterialesCrearDto> _validatorCrear;
+        private readonly IMapper _mapper;
 
-        public MaterialesController(ServicioMateriales servicio)
+        public MaterialesController(
+            ServicioMateriales servicio,
+            IValidator<MaterialesCrearDto> validatorCrear,
+            IMapper mapper)
         {
             _servicio = servicio;
+            _validatorCrear = validatorCrear;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             var materiales = await _servicio.ObtenerTodosAsync();
-            var dtos = materiales.Select(m => new MaterialesDto
-            {
-                id_material = m.id_material,
-                nombre = m.nombre,
-                tipo = m.tipo,
-                unidad_medida = m.unidad_medida,
-                color = m.color,
-                diametro = m.diametro,
-                activo = m.activo
-            });
+
+            var dtos =
+                _mapper.Map<List<MaterialesDto>>(materiales);
+
             return Ok(dtos);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var m = await _servicio.ObtenerPorIdAsync(id);
-            var dto = new MaterialesDto
+            try
             {
-                id_material = m.id_material,
-                nombre = m.nombre,
-                tipo = m.tipo,
-                unidad_medida = m.unidad_medida,
-                color = m.color,
-                diametro = m.diametro,
-                activo = m.activo
-            };
-            return Ok(dto);
+                var m = await _servicio.ObtenerPorIdAsync(id);
+
+                var dto =
+                    _mapper.Map<MaterialesDto>(m);
+
+                return Ok(dto);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] MaterialesCrearDto dto)
         {
-            var entidad = new Materiales
-            {
-                nombre = dto.nombre,
-                tipo = dto.tipo,
-                unidad_medida = dto.unidad_medida,
-                color = dto.color,
-                diametro = dto.diametro,
-                activo = dto.activo
-            };
+            var validationResultado =
+                await _validatorCrear.ValidateAsync(dto);
 
-            var id = await _servicio.CrearAsync(entidad);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            if (!validationResultado.IsValid)
+            {
+                var errores = validationResultado.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return BadRequest(new
+                {
+                    Mensaje = "Error de validación",
+                    Errores = errores
+                });
+            }
+
+            try
+            {
+                var entidad =
+                    _mapper.Map<Materiales>(dto);
+
+                var id = await _servicio.CrearAsync(entidad);
+                return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] MaterialesActualizarDto dto)
         {
-            var entidad = new Materiales
+            try
             {
-                id_material = id,
-                nombre = dto.nombre,
-                tipo = dto.tipo,
-                unidad_medida = dto.unidad_medida,
-                color = dto.color,
-                diametro = dto.diametro,
-                activo = dto.activo
-            };
+                var entidad =
+                    _mapper.Map<Materiales>(dto);
 
-            await _servicio.ActualizarAsync(entidad);
-            return NoContent();
+                entidad.id_material = id;
+
+                await _servicio.ActualizarAsync(entidad);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _servicio.EliminarAsync(id);
-            return NoContent();
+            try
+            {
+                await _servicio.EliminarAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new
+                {
+                    Mensaje = ex.Message
+                });
+            }
         }
     }
 }

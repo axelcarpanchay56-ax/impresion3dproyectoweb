@@ -13,7 +13,7 @@ namespace impresion3d.Core.Entidades
         public int id_material { get; set; }
 
         [Column("tipo_movimiento")]
-        public string tipo_movimiento { get; set; }
+        public string tipo_movimiento { get; set; } = string.Empty;
 
         [Column("cantidad")]
         public decimal cantidad { get; set; }
@@ -22,6 +22,6 @@ namespace impresion3d.Core.Entidades
         public DateTime fecha_hora { get; set; }
 
         [Column("observacion")]
-        public string observacion { get; set; }
+        public string? observacion { get; set; }
     }
 } 
