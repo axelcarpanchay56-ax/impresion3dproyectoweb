@@ -16,6 +16,14 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Current Database: `db_impresiones3d`
+--
+
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `db_impresiones3d` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+
+USE `db_impresiones3d`;
+
+--
 -- Table structure for table `clientes`
 --
 
@@ -2635,4 +2643,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-10  0:00:05
+-- Dump completed on 2026-11-10  0:08:15
